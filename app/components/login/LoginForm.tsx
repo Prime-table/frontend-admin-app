@@ -38,7 +38,7 @@ function LoginForm() {
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="space-y-4 rounded-md p-3 w-full md:max-w-1/3"
+      className="space-y-4 rounded-md py-4 px-3 w-[90%] md:max-w-1/3"
       style={{ boxShadow: "0 0px 2px 1px rgba(0, 0, 0, 0.1)" }}
     >
       <h2 className="font-semibold md:text-lg text-center">Admin Login</h2>
