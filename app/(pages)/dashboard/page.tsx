@@ -1,7 +1,13 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { RiArrowRightSFill } from "react-icons/ri";
 import LatestPartnersTable from "@/app/components/dashboard/LatestPartnersTable";
+
+export const metadata: Metadata = {
+  title: "Dashboard | Prime Table Admin",
+  description: "Overview of application data",
+};
 
 function Dashboard() {
   return (

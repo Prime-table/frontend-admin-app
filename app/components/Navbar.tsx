@@ -56,6 +56,11 @@ function Navbar() {
 
             {/* nav */}
             <aside
+              onClick={() =>
+                setTimeout(() => {
+                  setOpenNav(false);
+                }, 500)
+              }
               className={`w-[75%] h-screen absolute z-[50] top-0 ${
                 openNav ? "left-0" : "-left-full"
               } bg-red-primary text-white rounded-br-xl duration-300 transition-all flex flex-col gap-3`}
