@@ -4,9 +4,17 @@ import Image from "next/image";
 import { IoIosNotifications } from "react-icons/io";
 import { useState } from "react";
 import { IoChatboxEllipses } from "react-icons/io5";
-import { UserPen } from "lucide-react";
+import { UserPen, X } from "lucide-react";
 import { HiMenuAlt3 } from "react-icons/hi";
 import { CiLogout } from "react-icons/ci";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard } from "lucide-react";
+import { PiUsersThree } from "react-icons/pi";
+import { IoBriefcaseOutline } from "react-icons/io5";
+import { PiWallet } from "react-icons/pi";
+import { MdOutlineAnalytics } from "react-icons/md";
+import { CiUser } from "react-icons/ci";
+import { CiSettings } from "react-icons/ci";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -17,8 +25,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
 function Navbar() {
+  const pathname = usePathname();
   const router = useRouter();
   const [openNotifications, setOpenNotifications] = useState(false);
+  const [openNav, setOpenNav] = useState(false);
   const handleLogout = async () => {
     router.push("/login");
     setTimeout(() => {
@@ -29,16 +39,125 @@ function Navbar() {
     <nav className="bg-white w-full p-3 border-b border-b-gray-500/20 shadow-xs relative">
       <div className="w-full max-w-[95%] mx-auto flex items-center justify-between">
         {/* logo */}
-        <div className="w-[125px] md:w-[150px] h-[50px] flex items-center gap-3">
+        <div className="w-[150px] h-[50px] flex items-center gap-3">
           {/* mobile nav */}
           <div className="md:hidden">
             {/* hamburger-menu */}
-            <div>
+            <div className="cursor-pointer" onClick={() => setOpenNav(true)}>
               <HiMenuAlt3 className="text-chetwoodBlue text-2xl" />
             </div>
 
+            {/* overlay */}
+            <div
+              className={`w-full h-full bg-black/50 backdrop-blur-xs fixed top-0 left-0 
+            ${openNav ? "block" : "hidden"}`}
+              onClick={() => setOpenNav(false)}
+            />
+
             {/* nav */}
-            <div className=""></div>
+            <aside
+              className={`w-[75%] h-screen absolute z-[50] top-0 ${
+                openNav ? "left-0" : "-left-full"
+              } bg-red-primary text-white rounded-br-xl duration-300 transition-all flex flex-col gap-3`}
+            >
+              <header className="bg-white">
+                <div className="flex items-center justify-between px-4">
+                  <div className="w-[150px] h-[75px]">
+                    <Image
+                      src="/logo.svg"
+                      alt="Logo"
+                      priority
+                      width={100}
+                      height={100}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => setOpenNav(false)}
+                  >
+                    <X className="text-red-primary text-3xl" />
+                  </div>
+                </div>
+              </header>
+              <Link
+                href={"/dashboard"}
+                className={`${
+                  pathname === "/dashboard"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <LayoutDashboard className="inline-block mr-2 text-xl" />
+                <span className="text-lg">Dashboard</span>
+              </Link>
+              <Link
+                href={"/partner-approvals"}
+                className={`${
+                  pathname === "/partner-approvals"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <PiUsersThree className="inline-block mr-2 text-xl" />
+                <span className="text-lg">Partner Approvals</span>
+              </Link>
+              <Link
+                href={"/booking-logs"}
+                className={`${
+                  pathname === "/booking-logs"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <IoBriefcaseOutline className="inline-block mr-2 text-xl" />
+                <span className="text-lg">Booking Logs</span>
+              </Link>
+              <Link
+                href={"/escrow-control"}
+                className={`${
+                  pathname === "/escrow-control"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <PiWallet className="inline-block mr-2 text-xl" />
+                <span className="text-lg">Escrow Control</span>
+              </Link>
+              <Link
+                href={"/analytics"}
+                className={`${
+                  pathname === "/analytics"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <MdOutlineAnalytics className="inline-block mr-2 text-xl" />
+                <span className="text-lg">Analytics</span>
+              </Link>
+              <Link
+                href={"/user-management"}
+                className={`${
+                  pathname === "/user-management"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <CiUser className="inline-block mr-2 text-xl" />
+                <span className="text-lg">User Management</span>
+              </Link>
+              <Link
+                href={"/settings"}
+                className={`${
+                  pathname === "/settings"
+                    ? "font-bold bg-white text-black"
+                    : "bg-transparent text-white"
+                } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+              >
+                <CiSettings className="inline-block mr-2 text-xl" />
+                <span className="text-lg">Settings</span>
+              </Link>
+            </aside>
           </div>
           <Image
             src="/logo.svg"
