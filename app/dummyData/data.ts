@@ -1,4 +1,4 @@
-import { latestPartners, bookingLog } from "../types/types"
+import { latestPartners, bookingLog, escrowControl } from "../types/types"
 
 export const LatestPartners: latestPartners[] = [
     {
@@ -77,3 +77,34 @@ export const BookingLogs: bookingLog[] = [
         status: "approved"
     }
 ];
+
+export const EscrowControlData: escrowControl[] = [
+    {
+        bookingId: "B1235",
+        restaurant: "Big Taste",
+        amount: "₦50,000",
+        payoutDate: "2023-07-10",
+        status: "approved"
+    },
+    {
+        bookingId: "B1236",
+        restaurant: "Spicy Delight",
+        amount: "₦30,000",
+        payoutDate: "2023-07-11",
+        status: "pending"
+    },
+    {
+        bookingId: "B1237",
+        restaurant: "Sushi World",
+        amount: "₦40,000",
+        payoutDate: "2023-07-12",
+        status: "rejected"
+    },
+    {
+        bookingId: "B1238",
+        restaurant: "Pasta Paradise",
+        amount: "₦35,000",
+        payoutDate: "2023-07-13",
+        status: "approved"
+    }   
+]

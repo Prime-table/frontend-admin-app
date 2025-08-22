@@ -14,3 +14,11 @@ export type bookingLog = {
     amount: string
     status: "approved" | "pending" | "cancelled";
 }
+
+export type escrowControl = {
+    bookingId: string;
+    restaurant: string;
+    amount: string;
+    payoutDate: string;
+    status: "approved" | "pending" | "rejected";
+}

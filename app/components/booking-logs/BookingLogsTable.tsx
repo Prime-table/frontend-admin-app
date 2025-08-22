@@ -175,7 +175,7 @@ function BookingLogsTable() {
         <h2 className="text-lg md:text-xl font-bold">Booking Logs</h2>
 
         {/* Filters Container */}
-        <div className="flex items-center gap-5 px-4">
+        <div className="flex flex-wrap items-center gap-5 px-4">
           <span>Filter:</span>
 
           {/* Status Filter */}
