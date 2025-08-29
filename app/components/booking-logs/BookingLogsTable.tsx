@@ -172,7 +172,7 @@ function BookingLogsTable() {
   return (
     <div className="w-full flex flex-col gap-5">
       <header className="flex flex-col gap-5">
-        <h2 className="text-lg md:text-xl font-bold">Booking Logs</h2>
+        <h2 className="text-2xl md:text-3xl font-medium">Booking Logs</h2>
 
         {/* Filters Container */}
         <div className="flex flex-wrap items-center gap-5 px-4">

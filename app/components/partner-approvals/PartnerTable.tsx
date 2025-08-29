@@ -115,7 +115,7 @@ function PartnersTable() {
   return (
     <div className="w-full flex flex-col gap-5">
       <header className="flex flex-col gap-5">
-        <h2 className="text-lg md:text-xl font-bold">Partner Approvals</h2>
+        <h2 className="text-2xl md:text-3xl font-medium">Partner Approvals</h2>
         <div className="flex items-center gap-5 px-4">
           <span>Filter:</span>
           {/* dropdown */}

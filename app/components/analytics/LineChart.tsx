@@ -71,46 +71,48 @@ export default function BookingsChart() {
         </div>
       )}
       {!loading && (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-          className={`focus:outline-none border-none`}
-        >
-          <LineChart
-            data={dateRange === "Jan-Jun" ? data1 : data2}
-            margin={{
-              top: 20,
-              right: 30,
-              left: 0,
-              bottom: 20,
-            }}
+        <div className="w-full h-full ">
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+            className={`focus:outline-none border-none`}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-            <XAxis
-              dataKey="month"
-              stroke="#666"
-              fontSize={12}
-              tick={{ fill: "#666" }}
-            />
-            <YAxis stroke="#666" fontSize={12} tick={{ fill: "#666" }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "white",
-                border: "1px solid #ccc",
-                borderRadius: "4px",
+            <LineChart
+              data={dateRange === "Jan-Jun" ? data1 : data2}
+              margin={{
+                top: 20,
+                right: 30,
+                left: 0,
+                bottom: 20,
               }}
-            />
-            <Line
-              type="monotone"
-              dataKey="bookings"
-              stroke="#DC143C"
-              strokeWidth={3}
-              dot={{ fill: "#DC143C", strokeWidth: 2, r: 6 }}
-              activeDot={{ r: 8, fill: "#DC143C" }}
-              name="Bookings"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+              <XAxis
+                dataKey="month"
+                stroke="#666"
+                fontSize={12}
+                tick={{ fill: "#666" }}
+              />
+              <YAxis stroke="#666" fontSize={12} tick={{ fill: "#666" }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "white",
+                  border: "1px solid #ccc",
+                  borderRadius: "4px",
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="bookings"
+                stroke="#DC143C"
+                strokeWidth={3}
+                dot={{ fill: "#DC143C", strokeWidth: 2, r: 6 }}
+                activeDot={{ r: 8, fill: "#DC143C" }}
+                name="Bookings"
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       )}
     </div>
   );
