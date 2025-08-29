@@ -19,20 +19,17 @@ function AnalyticsandExportData() {
   // Filter states for export tab
   const [openDateRangeFilter, setOpenDateRangeFilter] = useState(false);
   const [openRestaurantFilter, setOpenRestaurantFilter] = useState(false);
-  const [openPartnerFilter, setOpenPartnerFilter] = useState(false);
   const [openReportTypeFilter, setOpenReportTypeFilter] = useState(false);
   const [openFormatFilter, setOpenFormatFilter] = useState(false);
 
   const [dateRangeFilter, setDateRangeFilter] = useState("all");
   const [restaurantFilter, setRestaurantFilter] = useState("all");
-  const [partnerFilter, setPartnerFilter] = useState("all");
   const [reportTypeFilter, setReportTypeFilter] = useState("all");
   const [formatFilter, setFormatFilter] = useState("pdf");
 
   // Refs for dropdowns
   const dateRangeDropdownRef = useRef<HTMLDivElement>(null);
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);
-  const partnerDropdownRef = useRef<HTMLDivElement>(null);
   const reportTypeDropdownRef = useRef<HTMLDivElement>(null);
   const formatDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,11 +50,6 @@ function AnalyticsandExportData() {
   const handleChooseRestaurantFilter = (filter: string) => {
     setRestaurantFilter(filter);
     setOpenRestaurantFilter(false);
-  };
-
-  const handleChoosePartnerFilter = (filter: string) => {
-    setPartnerFilter(filter);
-    setOpenPartnerFilter(false);
   };
 
   const handleChooseReportTypeFilter = (filter: string) => {
@@ -84,12 +76,6 @@ function AnalyticsandExportData() {
         !restaurantDropdownRef.current.contains(event.target as Node)
       ) {
         setOpenRestaurantFilter(false);
-      }
-      if (
-        partnerDropdownRef.current &&
-        !partnerDropdownRef.current.contains(event.target as Node)
-      ) {
-        setOpenPartnerFilter(false);
       }
       if (
         reportTypeDropdownRef.current &&
@@ -208,321 +194,283 @@ function AnalyticsandExportData() {
       {currentTab === "export" && (
         <div className="w-full flex flex-col gap-5">
           {/* filters */}
-          <div className="flex items-center gap-5 px-4">
-            <span>Filter:</span>
-
+          <div
+            className="grid grid-cols-1 place-content-center place-items-center 
+            sm:place-content-start sm:place-items-start sm:grid-cols-2 lg:grid-cols-3 
+            items-center gap-5"
+          >
             {/* Date Range Filter */}
-            <div
-              ref={dateRangeDropdownRef}
-              className="w-[200px] md:w-[250px] relative border border-black/30 hover:border-red-primary/50 
+            <div className="flex flex-col gap-2 items-start w-full">
+              <h3>Date Range</h3>
+              <div
+                ref={dateRangeDropdownRef}
+                className="min-w-fit w-full sm:w-[150px] md:w-[250px] lg:w-[325px] relative border border-black/30 hover:border-red-primary/50 
                 duration-300 ease-in-out rounded-sm flex items-center justify-center 
                 cursor-pointer"
-            >
-              {/* trigger */}
-              <div
-                className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
-                onClick={() => setOpenDateRangeFilter(!openDateRangeFilter)}
               >
-                <span className="flex items-center text-sm md:text-base whitespace-nowrap">
-                  Period:{" "}
-                  {dateRangeFilter === "all"
-                    ? "all"
-                    : dateRangeFilter.replace("-", " ")}
-                </span>{" "}
-                <span>
-                  <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
-                </span>
-              </div>
-              {/* content */}
-              <div
-                className={`w-full bg-white absolute top-[110%]
+                {/* trigger */}
+                <div
+                  className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
+                  onClick={() => setOpenDateRangeFilter(!openDateRangeFilter)}
+                >
+                  <span className="flex items-center text-sm md:text-base whitespace-nowrap">
+                    {dateRangeFilter === "all"
+                      ? "all"
+                      : dateRangeFilter.replace("-", " ")}
+                  </span>{" "}
+                  <span>
+                    <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
+                  </span>
+                </div>
+                {/* content */}
+                <div
+                  className={`w-full bg-white absolute top-[110%]
                 flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
                   openDateRangeFilter
-                    ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto overflow-y-auto"
+                    ? "max-h-[250px] opacity-100 z-[10] pointer-events-auto"
                     : "max-h-0 opacity-0 z-[-1] pointer-events-none"
                 }`}
-              >
-                <span
-                  onClick={() => handleChooseDateRangeFilter("all")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                >
+                  <span
+                    onClick={() => handleChooseDateRangeFilter("all")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  All
-                </span>
-                <span
-                  onClick={() => handleChooseDateRangeFilter("last-30-days")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    All
+                  </span>
+                  <span
+                    onClick={() => handleChooseDateRangeFilter("last-30-days")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Last 30 Days
-                </span>
-                <span
-                  onClick={() => handleChooseDateRangeFilter("last-90-days")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    Last 30 Days
+                  </span>
+                  <span
+                    onClick={() => handleChooseDateRangeFilter("last-90-days")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Last 90 Days
-                </span>
-                <span
-                  onClick={() => handleChooseDateRangeFilter("last-6-months")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    Last 90 Days
+                  </span>
+                  <span
+                    onClick={() => handleChooseDateRangeFilter("last-6-months")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Last 6 Months
-                </span>
-                <span
-                  onClick={() => handleChooseDateRangeFilter("last-year")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    Last 6 Months
+                  </span>
+                  <span
+                    onClick={() => handleChooseDateRangeFilter("last-year")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Last Year
-                </span>
+                  >
+                    Last Year
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Restaurant Filter */}
-            <div
-              ref={restaurantDropdownRef}
-              className="w-[200px] md:w-[250px] relative border border-black/30 hover:border-red-primary/50 
+            <div className="flex flex-col gap-2 items-start w-full">
+              <h3>Restaurant Partner</h3>
+              <div
+                ref={restaurantDropdownRef}
+                className="min-w-fit w-full sm:w-[150px] md:w-[250px] lg:w-[325px] relative border border-black/30 hover:border-red-primary/50 
                 duration-300 ease-in-out rounded-sm flex items-center justify-center 
                 cursor-pointer"
-            >
-              {/* trigger */}
-              <div
-                className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
-                onClick={() => setOpenRestaurantFilter(!openRestaurantFilter)}
               >
-                <span className="flex items-center text-sm md:text-base whitespace-nowrap">
-                  Restaurant:{" "}
-                  {restaurantFilter === "all" ? "all" : restaurantFilter}
-                </span>{" "}
-                <span>
-                  <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
-                </span>
-              </div>
-              {/* content */}
-              <div
-                className={`w-full bg-white absolute top-[110%]
+                {/* trigger */}
+                <div
+                  className="w-full flex justify-center gap-3 md:gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
+                  onClick={() => setOpenRestaurantFilter(!openRestaurantFilter)}
+                >
+                  <span className="flex items-center text-sm md:text-base whitespace-nowrap">
+                    {restaurantFilter === "all" ? "all" : restaurantFilter}
+                  </span>{" "}
+                  <span>
+                    <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
+                  </span>
+                </div>
+                {/* content */}
+                <div
+                  className={`w-full bg-white absolute top-[110%]
                 flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
                   openRestaurantFilter
-                    ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto overflow-y-auto"
+                    ? "max-h-[250px] opacity-100 z-[10] pointer-events-auto"
                     : "max-h-0 opacity-0 z-[-1] pointer-events-none"
                 }`}
-              >
-                <span
-                  onClick={() => handleChooseRestaurantFilter("all")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                >
+                  <span
+                    onClick={() => handleChooseRestaurantFilter("all")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  All
-                </span>
-                {uniqueRestaurants.map((restaurant) => (
-                  <span
-                    key={restaurant}
-                    onClick={() => handleChooseRestaurantFilter(restaurant)}
-                    className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    All
+                  </span>
+                  {uniqueRestaurants.map((restaurant) => (
+                    <span
+                      key={restaurant}
+                      onClick={() => handleChooseRestaurantFilter(restaurant)}
+                      className="text-sm font-semibold w-full border border-red-primary 
                       text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                       rounded-md text-center"
-                  >
-                    {restaurant}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Partner Filter */}
-            <div
-              ref={partnerDropdownRef}
-              className="w-[200px] md:w-[250px] relative border border-black/30 hover:border-red-primary/50 
-                duration-300 ease-in-out rounded-sm flex items-center justify-center 
-                cursor-pointer"
-            >
-              {/* trigger */}
-              <div
-                className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
-                onClick={() => setOpenPartnerFilter(!openPartnerFilter)}
-              >
-                <span className="flex items-center text-sm md:text-base whitespace-nowrap">
-                  Partner: {partnerFilter === "all" ? "all" : partnerFilter}
-                </span>{" "}
-                <span>
-                  <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
-                </span>
-              </div>
-              {/* content */}
-              <div
-                className={`w-full bg-white absolute top-[110%]
-                flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
-                  openPartnerFilter
-                    ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto overflow-y-auto"
-                    : "max-h-0 opacity-0 z-[-1] pointer-events-none"
-                }`}
-              >
-                <span
-                  onClick={() => handleChoosePartnerFilter("all")}
-                  className="text-sm font-semibold w-full border border-red-primary 
-                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                    rounded-md text-center"
-                >
-                  All
-                </span>
-                {uniquePartners.map((partner) => (
-                  <span
-                    key={partner}
-                    onClick={() => handleChoosePartnerFilter(partner)}
-                    className="text-sm font-semibold w-full border border-red-primary 
-                      text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                      rounded-md text-center"
-                  >
-                    {partner}
-                  </span>
-                ))}
+                    >
+                      {restaurant}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Report Type Filter */}
-            <div
-              ref={reportTypeDropdownRef}
-              className="w-[200px] md:w-[250px] relative border border-black/30 hover:border-red-primary/50 
+            <div className="flex flex-col gap-2 items-start w-full">
+              <h3>Report Type</h3>
+              <div
+                ref={reportTypeDropdownRef}
+                className="min-w-fit w-full sm:w-[150px] md:w-[250px] lg:w-[325px] relative border border-black/30 hover:border-red-primary/50 
                 duration-300 ease-in-out rounded-sm flex items-center justify-center 
                 cursor-pointer"
-            >
-              {/* trigger */}
-              <div
-                className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
-                onClick={() => setOpenReportTypeFilter(!openReportTypeFilter)}
               >
-                <span className="flex items-center text-sm md:text-base whitespace-nowrap">
-                  Type:{" "}
-                  {reportTypeFilter === "all"
-                    ? "all"
-                    : reportTypeFilter.replace("-", " ")}
-                </span>{" "}
-                <span>
-                  <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
-                </span>
-              </div>
-              {/* content */}
-              <div
-                className={`w-full bg-white absolute top-[110%]
+                {/* trigger */}
+                <div
+                  className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
+                  onClick={() => setOpenReportTypeFilter(!openReportTypeFilter)}
+                >
+                  <span className="flex items-center text-sm md:text-base whitespace-nowrap">
+                    {reportTypeFilter === "all"
+                      ? "all"
+                      : reportTypeFilter.replace("-", " ")}
+                  </span>{" "}
+                  <span>
+                    <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
+                  </span>
+                </div>
+                {/* content */}
+                <div
+                  className={`w-full bg-white absolute top-[110%]
                 flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
                   openReportTypeFilter
-                    ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto overflow-y-auto"
+                    ? "max-h-[250px] opacity-100 z-[10] pointer-events-auto"
                     : "max-h-0 opacity-0 z-[-1] pointer-events-none"
                 }`}
-              >
-                <span
-                  onClick={() => handleChooseReportTypeFilter("all")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                >
+                  <span
+                    onClick={() => handleChooseReportTypeFilter("all")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  All
-                </span>
-                <span
-                  onClick={() => handleChooseReportTypeFilter("booking-logs")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    All
+                  </span>
+                  <span
+                    onClick={() => handleChooseReportTypeFilter("booking-logs")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Booking Logs
-                </span>
-                <span
-                  onClick={() => handleChooseReportTypeFilter("partner-data")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    Booking Logs
+                  </span>
+                  <span
+                    onClick={() => handleChooseReportTypeFilter("partner-data")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Partner Data
-                </span>
-                <span
-                  onClick={() => handleChooseReportTypeFilter("escrow-data")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    Partner Data
+                  </span>
+                  <span
+                    onClick={() => handleChooseReportTypeFilter("escrow-data")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Escrow Data
-                </span>
-                <span
-                  onClick={() =>
-                    handleChooseReportTypeFilter("analytics-summary")
-                  }
-                  className="text-sm font-semibold w-full border border-red-primary 
-                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                    rounded-md text-center"
-                >
-                  Analytics Summary
-                </span>
+                  >
+                    Escrow Data
+                  </span>
+                </div>
               </div>
             </div>
 
             {/* Format Filter */}
-            <div
-              ref={formatDropdownRef}
-              className="w-[200px] md:w-[250px] relative border border-black/30 hover:border-red-primary/50 
-                duration-300 ease-in-out rounded-sm flex items-center justify-center 
+            <div className="flex flex-col gap-2 items-start w-full">
+              <h3>Format</h3>
+              <div
+                ref={formatDropdownRef}
+                className="min-w-fit w-full sm:w-[150px] md:w-[250px] lg:w-[325px] relative border border-black/30 hover:border-red-primary/50 
+                duration-300 ease-in-out rounded-sm flex items-center justify-center
                 cursor-pointer"
-            >
-              {/* trigger */}
-              <div
-                className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
-                onClick={() => setOpenFormatFilter(!openFormatFilter)}
               >
-                <span className="flex items-center text-sm md:text-base whitespace-nowrap">
-                  Format: {formatFilter}
-                </span>{" "}
-                <span>
-                  <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
-                </span>
-              </div>
-              {/* content */}
-              <div
-                className={`w-full bg-white absolute top-[110%]
+                {/* trigger */}
+                <div
+                  className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
+                  onClick={() => setOpenFormatFilter(!openFormatFilter)}
+                >
+                  <span className="flex items-center text-sm md:text-base whitespace-nowrap">
+                    {formatFilter}
+                  </span>{" "}
+                  <span>
+                    <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
+                  </span>
+                </div>
+                {/* content */}
+                <div
+                  className={`w-full bg-white absolute top-[110%]
                 flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
                   openFormatFilter
-                    ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto"
+                    ? "max-h-[250px] opacity-100 z-[10] pointer-events-auto"
                     : "max-h-0 opacity-0 z-[-1] pointer-events-none"
                 }`}
-              >
-                <span
-                  onClick={() => handleChooseFormatFilter("pdf")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                >
+                  <span
+                    onClick={() => handleChooseFormatFilter("pdf")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  PDF
-                </span>
-                <span
-                  onClick={() => handleChooseFormatFilter("csv")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    PDF
+                  </span>
+                  <span
+                    onClick={() => handleChooseFormatFilter("csv")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  CSV
-                </span>
-                <span
-                  onClick={() => handleChooseFormatFilter("excel")}
-                  className="text-sm font-semibold w-full border border-red-primary 
+                  >
+                    CSV
+                  </span>
+                  <span
+                    onClick={() => handleChooseFormatFilter("excel")}
+                    className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
-                >
-                  Excel
-                </span>
+                  >
+                    Excel
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Export Button */}
-          <div className="flex justify-end px-4">
-            <button className="bg-red-primary text-white px-6 py-3 rounded-md hover:bg-red-alt duration-300 ease-in-out font-medium">
-              Export Report
-            </button>
+          {/* generate table */}
+          <div className="w-full flex flex-col gap-5">
+            {/*action buttons  */}
+            <div className="">
+              <button className="bg-red-primary text-white px-4 py-2 rounded-md">
+                Generate Report
+              </button>
+              <button className="bg-gray-300 text-black px-4 py-2 rounded-md">
+                Download Report
+              </button>
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-md">
+                Email Report
+              </button>
+            </div>
+
+            {/* preview table */}
           </div>
         </div>
       )}
