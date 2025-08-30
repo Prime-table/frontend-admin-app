@@ -153,18 +153,33 @@ function AnalyticsandExportData() {
       `${formatText(reportTypeFilter)} Report generated successfully!`
     );
   };
+
+  const handleDownloadReport = async () => {
+    if (!isReportGenerated) {
+      toast.error("generate a report");
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    toast.success("download complete");
+  };
+
+  const handleSendReportEmail = async () => {
+    if (!isReportGenerated) {
+      toast.error("generate a report");
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    toast.success("email sent");
+  };
   // Refs for dropdowns
   const dateRangeDropdownRef = useRef<HTMLDivElement>(null);
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);
   const reportTypeDropdownRef = useRef<HTMLDivElement>(null);
   const formatDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Get unique restaurants and partners from data
+  // Get unique restaurants
   const uniqueRestaurants = [
     ...new Set(BookingLogs.map((log) => log.restaurant)),
-  ];
-  const uniquePartners = [
-    ...new Set(LatestPartners.map((partner) => partner.fullName)),
   ];
 
   // Filter handlers
@@ -584,16 +599,18 @@ function AnalyticsandExportData() {
                 {isGenerating ? "Generating Report..." : "Generate Report"}
               </button>
               <button
+                onClick={handleDownloadReport}
                 disabled={!isReportGenerated}
                 className="bg-transparent border border-gray-400 cursor-pointer hover:border-red-primary/50 font-medium 
-              text-black px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base rounded-md duration-300 ease-in-out disabled:opacity-50 disabled:hover:border-gray-400"
+              text-black hover:text-red-primary/80 disabled:hover:text-black px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base rounded-md duration-300 ease-in-out disabled:opacity-50 disabled:hover:border-gray-400"
               >
                 Download Report
               </button>
               <button
+                onClick={handleSendReportEmail}
                 disabled={!isReportGenerated}
                 className="bg-transparent border border-gray-400 cursor-pointer hover:border-red-primary/50 font-medium 
-              text-black px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base rounded-md duration-300 ease-in-out disabled:opacity-50 disabled:hover:border-gray-400"
+              text-black hover:text-red-primary/80 disabled:hover:text-black px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base rounded-md duration-300 ease-in-out disabled:opacity-50 disabled:hover:border-gray-400"
               >
                 Email Report
               </button>
