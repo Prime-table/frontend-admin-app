@@ -9,8 +9,22 @@ import {
   User,
 } from "lucide-react";
 import { RiArrowDownSFill } from "react-icons/ri";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableCell,
+  TableBody,
+  TableRow,
+} from "@/components/ui/table";
 import BookingsChart from "./LineChart";
-import { BookingLogs, LatestPartners } from "@/app/dummyData/data";
+import {
+  BookingLogs,
+  LatestPartners,
+  EscrowControlData,
+} from "@/app/dummyData/data";
+import { bookingLog, escrowControl } from "@/app/types/types";
+import toast from "react-hot-toast";
 function AnalyticsandExportData() {
   const [currentTab, setCurrentTab] = useState<"analytics" | "export">(
     "analytics"
@@ -24,9 +38,121 @@ function AnalyticsandExportData() {
 
   const [dateRangeFilter, setDateRangeFilter] = useState("all");
   const [restaurantFilter, setRestaurantFilter] = useState("all");
-  const [reportTypeFilter, setReportTypeFilter] = useState("all");
-  const [formatFilter, setFormatFilter] = useState("pdf");
+  const [reportTypeFilter, setReportTypeFilter] = useState("bookings");
+  const [formatFilter, setFormatFilter] = useState("csv");
 
+  // report states
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isReportGenerated, setIsReportGenerated] = useState(false);
+  const [previewData, setPreviewData] = useState<
+    bookingLog[] | escrowControl[]
+  >([]);
+
+  const formatText = (text: string) => {
+    const newText = text.replace("-", " ");
+    return newText.charAt(0).toUpperCase() + newText.slice(1);
+  };
+
+  const getDateRangeFromFilter = (filter: string) => {
+    const now = new Date();
+    const startOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+    switch (filter) {
+      case "last-30-days":
+        const thirtyDaysAgo = new Date(startOfDay);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return { from: thirtyDaysAgo, to: now };
+      case "last-90-days":
+        const ninetyDaysAgo = new Date(startOfDay);
+        ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+        return { from: ninetyDaysAgo, to: now };
+      case "last-6-months":
+        const sixMonthsAgo = new Date(startOfDay);
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        return { from: sixMonthsAgo, to: now };
+      case "last-year":
+        const oneYearAgo = new Date(startOfDay);
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        return { from: oneYearAgo, to: now };
+      default:
+        return null;
+    }
+  };
+
+  const statusClass = (status: string) => {
+    switch (status) {
+      case "approved":
+        return "text-green-600";
+      case "pending":
+        return "text-orange-300";
+      case "cancelled":
+      case "rejected":
+        return "text-red-500";
+      default:
+        return "text-gray-500";
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    setIsGenerating(true);
+    setIsReportGenerated(false);
+
+    // Filter data based on selected filters
+    let filteredData: bookingLog[] | escrowControl[] = [];
+
+    if (reportTypeFilter === "bookings") {
+      filteredData = BookingLogs.filter((log) => {
+        // Restaurant filter
+        const restaurantMatch =
+          restaurantFilter === "all" || log.restaurant === restaurantFilter;
+
+        // Date range filter
+        let dateMatch = true;
+        if (dateRangeFilter !== "all") {
+          const dateRange = getDateRangeFromFilter(dateRangeFilter);
+          if (dateRange) {
+            const logDate = new Date(log.date);
+            dateMatch = logDate >= dateRange.from && logDate <= dateRange.to;
+          }
+        }
+
+        return restaurantMatch && dateMatch;
+      });
+    } else if (reportTypeFilter === "escrow-data") {
+      filteredData = EscrowControlData.filter((escrow) => {
+        // Restaurant filter
+        const restaurantMatch =
+          restaurantFilter === "all" || escrow.restaurant === restaurantFilter;
+
+        // Date range filter
+        let dateMatch = true;
+        if (dateRangeFilter !== "all") {
+          const dateRange = getDateRangeFromFilter(dateRangeFilter);
+          if (dateRange) {
+            const payoutDate = new Date(escrow.payoutDate);
+            dateMatch =
+              payoutDate >= dateRange.from && payoutDate <= dateRange.to;
+          }
+        }
+
+        return restaurantMatch && dateMatch;
+      });
+    }
+
+    // Simulate report generation
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    setPreviewData(filteredData);
+    setIsGenerating(false);
+    setIsReportGenerated(true);
+    toast.success(
+      `${formatText(reportTypeFilter)} Report generated successfully!`
+    );
+  };
   // Refs for dropdowns
   const dateRangeDropdownRef = useRef<HTMLDivElement>(null);
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);
@@ -227,7 +353,7 @@ function AnalyticsandExportData() {
                   className={`w-full bg-white absolute top-[110%]
                 flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
                   openDateRangeFilter
-                    ? "max-h-[250px] opacity-100 z-[10] pointer-events-auto"
+                    ? "max-h-[350px] opacity-100 z-[10] pointer-events-auto"
                     : "max-h-0 opacity-0 z-[-1] pointer-events-none"
                 }`}
                 >
@@ -241,6 +367,14 @@ function AnalyticsandExportData() {
                   </span>
                   <span
                     onClick={() => handleChooseDateRangeFilter("last-30-days")}
+                    className="text-sm font-semibold w-full border border-red-primary 
+                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                    rounded-md text-center"
+                  >
+                    Last 30 Days
+                  </span>
+                  <span
+                    onClick={() => handleChooseDateRangeFilter("today")}
                     className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
@@ -343,9 +477,7 @@ function AnalyticsandExportData() {
                   onClick={() => setOpenReportTypeFilter(!openReportTypeFilter)}
                 >
                   <span className="flex items-center text-sm md:text-base whitespace-nowrap">
-                    {reportTypeFilter === "all"
-                      ? "all"
-                      : reportTypeFilter.replace("-", " ")}
+                    {reportTypeFilter.replace("-", " ")}
                   </span>{" "}
                   <span>
                     <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
@@ -361,28 +493,12 @@ function AnalyticsandExportData() {
                 }`}
                 >
                   <span
-                    onClick={() => handleChooseReportTypeFilter("all")}
+                    onClick={() => handleChooseReportTypeFilter("bookings")}
                     className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
                   >
-                    All
-                  </span>
-                  <span
-                    onClick={() => handleChooseReportTypeFilter("booking-logs")}
-                    className="text-sm font-semibold w-full border border-red-primary 
-                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                    rounded-md text-center"
-                  >
-                    Booking Logs
-                  </span>
-                  <span
-                    onClick={() => handleChooseReportTypeFilter("partner-data")}
-                    className="text-sm font-semibold w-full border border-red-primary 
-                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                    rounded-md text-center"
-                  >
-                    Partner Data
+                    Bookings
                   </span>
                   <span
                     onClick={() => handleChooseReportTypeFilter("escrow-data")}
@@ -427,20 +543,20 @@ function AnalyticsandExportData() {
                 }`}
                 >
                   <span
-                    onClick={() => handleChooseFormatFilter("pdf")}
-                    className="text-sm font-semibold w-full border border-red-primary 
-                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                    rounded-md text-center"
-                  >
-                    PDF
-                  </span>
-                  <span
                     onClick={() => handleChooseFormatFilter("csv")}
                     className="text-sm font-semibold w-full border border-red-primary 
                     text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                     rounded-md text-center"
                   >
                     CSV
+                  </span>
+                  <span
+                    onClick={() => handleChooseFormatFilter("pdf")}
+                    className="text-sm font-semibold w-full border border-red-primary 
+                    text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                    rounded-md text-center"
+                  >
+                    PDF
                   </span>
                   <span
                     onClick={() => handleChooseFormatFilter("excel")}
@@ -458,19 +574,150 @@ function AnalyticsandExportData() {
           {/* generate table */}
           <div className="w-full flex flex-col gap-5">
             {/*action buttons  */}
-            <div className="">
-              <button className="bg-red-primary text-white px-4 py-2 rounded-md">
-                Generate Report
+            <div className="flex flex-wrap items-center gap-5">
+              <button
+                disabled={isGenerating}
+                onClick={handleGenerateReport}
+                className="bg-red-primary hover:bg-red-primary/90 disabled:opacity-50 disabled:hover:bg-red-primary 
+                duration-300 ease-in-out cursor-pointer text-white px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base font-medium rounded-md"
+              >
+                {isGenerating ? "Generating Report..." : "Generate Report"}
               </button>
-              <button className="bg-gray-300 text-black px-4 py-2 rounded-md">
+              <button
+                disabled={!isReportGenerated}
+                className="bg-transparent border border-gray-400 cursor-pointer hover:border-red-primary/50 font-medium 
+              text-black px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base rounded-md duration-300 ease-in-out disabled:opacity-50 disabled:hover:border-gray-400"
+              >
                 Download Report
               </button>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-md">
+              <button
+                disabled={!isReportGenerated}
+                className="bg-transparent border border-gray-400 cursor-pointer hover:border-red-primary/50 font-medium 
+              text-black px-4 lg:px-6 py-2 lg:py-4 text-sm lg:text-base rounded-md duration-300 ease-in-out disabled:opacity-50 disabled:hover:border-gray-400"
+              >
                 Email Report
               </button>
             </div>
 
             {/* preview table */}
+            {isReportGenerated && previewData.length > 0 && (
+              <div className="w-full flex flex-col gap-5">
+                <h3 className="text-lg font-semibold">Report Preview</h3>
+                <div className="border border-black/30 rounded-sm pt-4">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b-black/30 hover:bg-transparent">
+                        {reportTypeFilter === "bookings" ? (
+                          <>
+                            <TableHead className="font-medium pb-3">
+                              Booking ID
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Restaurant
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Date
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Amount
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Status
+                            </TableHead>
+                          </>
+                        ) : (
+                          <>
+                            <TableHead className="font-medium pb-3">
+                              Booking ID
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Restaurant
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Amount
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Payout Date
+                            </TableHead>
+                            <TableHead className="font-medium pb-3">
+                              Status
+                            </TableHead>
+                          </>
+                        )}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {previewData.map((item, index) => (
+                        <TableRow key={index} className="border-b-black/30">
+                          {reportTypeFilter === "bookings" ? (
+                            // Booking logs table structure
+                            <>
+                              <TableCell className="p-3 font-medium">
+                                {(item as bookingLog).bookingId}
+                              </TableCell>
+                              <TableCell className="p-3">
+                                {(item as bookingLog).restaurant}
+                              </TableCell>
+                              <TableCell className="p-3">
+                                {new Date(
+                                  (item as bookingLog).date
+                                ).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="p-3 font-medium">
+                                {(item as bookingLog).amount}
+                              </TableCell>
+                              <TableCell
+                                className={`p-3 ${statusClass(
+                                  (item as bookingLog).status
+                                )}`}
+                              >
+                                {(item as bookingLog).status}
+                              </TableCell>
+                            </>
+                          ) : (
+                            // Escrow data table structure
+                            <>
+                              <TableCell className="p-3">
+                                {(item as escrowControl).bookingId}
+                              </TableCell>
+                              <TableCell className="p-3">
+                                {(item as escrowControl).restaurant}
+                              </TableCell>
+                              <TableCell className="p-3">
+                                {(item as escrowControl).amount}
+                              </TableCell>
+                              <TableCell className="p-3">
+                                {new Date(
+                                  (item as escrowControl).payoutDate
+                                ).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell
+                                className={`p-3 ${statusClass(
+                                  (item as escrowControl).status
+                                )}`}
+                              >
+                                {(item as escrowControl).status}
+                              </TableCell>
+                            </>
+                          )}
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
+            {isReportGenerated && previewData.length === 0 && (
+              <div className="w-full flex flex-col gap-5">
+                <h3 className="text-lg font-semibold">Report Preview</h3>
+                <div className="border border-black/30 rounded-sm p-8">
+                  <div className="text-center text-gray-500">
+                    No data found for the selected filters.
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
