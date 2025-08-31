@@ -40,6 +40,7 @@ function UserManagementTable() {
           </DialogTrigger>
           <DialogContent className="w-[300px] md:w-2/3 border-0">
             <DialogHeader>
+              {/* test */}
               <DialogTitle>Add New User</DialogTitle>
               {/* form */}
               <DialogDescription className="mt-4 flex flex-col gap-3">
