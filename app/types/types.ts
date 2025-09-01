@@ -22,3 +22,12 @@ export type escrowControl = {
     payoutDate: string;
     status: "approved" | "pending" | "rejected";
 }
+
+export type Users = {
+    fullName: string;
+    email: string;
+    role: "partner" | "customer" | "staff";
+    status: "approved" | "pending" | "suspended";
+    createdAt: string;
+    updatedAt: string;
+}

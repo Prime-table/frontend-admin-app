@@ -1,4 +1,4 @@
-import { latestPartners, bookingLog, escrowControl } from "../types/types"
+import { latestPartners, bookingLog, escrowControl, Users } from "../types/types"
 
 export const LatestPartners: latestPartners[] = [
     {
@@ -107,4 +107,55 @@ export const EscrowControlData: escrowControl[] = [
         payoutDate: "2023-07-13",
         status: "approved"
     }   
+]
+
+export const userData: Users[] = [
+    {
+        fullName: "John Doe",
+        email: "john@example.com",
+        role: "partner",
+        status: "approved",
+        createdAt: "2023-01-01",
+        updatedAt: "2023-01-01"
+    },
+    {
+        fullName: "Jane Smith",
+        email: "jane@example.com",
+        role: "customer",
+        status: "pending",
+        createdAt: "2023-02-01",
+        updatedAt: "2023-02-01"
+    },
+    {
+        fullName: "Bob Johnson",
+        email: "bob@example.com",
+        role: "staff",
+        status: "suspended",
+        createdAt: "2023-03-01",
+        updatedAt: "2023-03-01"
+    },
+    {
+        fullName: "Alice Williams",
+        email: "alice@example.com",
+        role: "partner",
+        status: "approved",
+        createdAt: "2023-04-01",
+        updatedAt: "2023-04-01"
+    },
+    {
+        fullName: "Charlie Brown",
+        email: "charlie@example.com",
+        role: "customer",
+        status: "pending",
+        createdAt: "2023-05-01",
+        updatedAt: "2023-05-01"
+    },
+    {
+        fullName: "David Wilson",
+        email: "david@example.com",
+        role: "staff",
+        status: "suspended",
+        createdAt: "2023-06-01",
+        updatedAt: "2023-06-01"
+    }
 ]
