@@ -31,3 +31,14 @@ export type Users = {
     createdAt: string;
     updatedAt: string;
 }
+
+export type Reviews = {
+    id: string;
+    userName: string;
+    restaurant: string;
+    rating: number;
+    review: string;
+    status: "approved" | "removed" | "flagged";
+    createdAt: string;
+    updatedAt: string;
+}

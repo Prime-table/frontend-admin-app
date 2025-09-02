@@ -52,6 +52,20 @@ function UserManagementTable() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<Users | null>(null);
+  const [editUserModal, setEditUserModal] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<Users | null>(null);
+  const [editUserFormData, setEditUserFormData] = useState({
+    fullName: "",
+    email: "",
+    role: "partner",
+    status: "pending",
+  });
+  const [editErrors, setEditErrors] = useState({
+    fullName: "",
+    email: "",
+    role: "",
+    status: "",
+  });
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const dateDropdownRef = useRef<HTMLDivElement>(null);
   const [addNewUserFormData, setAddNewUserFormData] = useState({
@@ -300,6 +314,123 @@ function UserManagementTable() {
 
   const cancelBulkDelete = () => {
     setBulkDeleteConfirmOpen(false);
+  };
+
+  // Edit user functionality
+  const handleEditUser = (user: Users) => {
+    setUserToEdit(user);
+    setEditUserFormData({
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+    });
+    setEditUserModal(true);
+  };
+
+  const handleEditFormChange = (field: string, value: string) => {
+    setEditUserFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    // Clear error for this field
+    if (editErrors[field as keyof typeof editErrors]) {
+      setEditErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
+  };
+
+  const validateEditForm = () => {
+    const newErrors = {
+      fullName: "",
+      email: "",
+      role: "",
+      status: "",
+    };
+    let isValid = true;
+
+    if (!editUserFormData.fullName.trim()) {
+      newErrors.fullName = "Full name is required";
+      isValid = false;
+    }
+    if (!editUserFormData.email.trim()) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } else if (!/\S+@\S+\.\S+/.test(editUserFormData.email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;
+    }
+    if (!editUserFormData.role) {
+      newErrors.role = "Role is required";
+      isValid = false;
+    }
+    if (!editUserFormData.status) {
+      newErrors.status = "Status is required";
+      isValid = false;
+    }
+
+    setEditErrors(newErrors);
+    return isValid;
+  };
+
+  const handleUpdateUser = async () => {
+    if (!validateEditForm() || !userToEdit) {
+      toast.error("Please fill in all required fields correctly.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Update user in userData array
+      const userIndex = userData.findIndex((u) => u.email === userToEdit.email);
+      if (userIndex !== -1) {
+        userData[userIndex] = {
+          ...userData[userIndex],
+          fullName: editUserFormData.fullName,
+          email: editUserFormData.email,
+          role: editUserFormData.role as "partner" | "customer" | "staff",
+          status: editUserFormData.status as
+            | "approved"
+            | "pending"
+            | "suspended",
+          updatedAt: new Date().toISOString().split("T")[0],
+        };
+        setData([...userData]);
+      }
+
+      toast.success(
+        `${editUserFormData.fullName} has been updated successfully!`
+      );
+      setEditUserModal(false);
+      setUserToEdit(null);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      toast.error("Failed to update user.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setEditUserModal(false);
+    setUserToEdit(null);
+    setEditUserFormData({
+      fullName: "",
+      email: "",
+      role: "partner",
+      status: "pending",
+    });
+    setEditErrors({
+      fullName: "",
+      email: "",
+      role: "",
+      status: "",
+    });
   };
 
   // Filter functions
@@ -968,12 +1099,10 @@ function UserManagementTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-white border border-gray-200 rounded-sm shadow-lg">
                         <DropdownMenuItem
-                          onClick={() =>
-                            toast.success(`Viewing ${user.fullName}'s details`)
-                          }
-                          className="cursor-pointer hover:bg-gray-50 px-3 py-2"
+                          onClick={() => handleEditUser(user)}
+                          className={`cursor-pointer hover:bg-gray-50 px-3 py-2`}
                         >
-                          View Details
+                          Edit
                         </DropdownMenuItem>
                         {user.status !== "approved" && (
                           <DropdownMenuItem
@@ -1106,6 +1235,146 @@ function UserManagementTable() {
               Delete {selectedUsers.length} User(s)
             </button>
           </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit User Modal */}
+      <AlertDialog open={editUserModal} onOpenChange={setEditUserModal}>
+        <AlertDialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-4 md:p-6">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="w-full text-xl md:text-2xl flex items-center gap-3 justify-between">
+                <span>Edit User Details</span>
+                <X
+                  onClick={handleCloseEditModal}
+                  className="ml-2 w-8 h-8 cursor-pointer hover:text-gray-600"
+                />
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-sm md:text-base">
+                Update the user information below.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            {/* Edit Form Content */}
+            <div className="w-full space-y-4 mt-6 overflow-x-hidden">
+              {/* Full Name */}
+              <div className="w-full flex flex-col gap-2">
+                <span className="text-black/80 text-sm md:text-base">
+                  Full Name
+                </span>
+                <input
+                  type="text"
+                  value={editUserFormData.fullName}
+                  onChange={(e) =>
+                    handleEditFormChange("fullName", e.target.value)
+                  }
+                  className="focus:outline-none border-black/50 border rounded-sm px-3 py-2 md:py-3 shadow-none text-sm md:text-base"
+                  placeholder="Enter full name"
+                />
+                {editErrors.fullName && (
+                  <span className="text-red-500 text-xs md:text-sm">
+                    {editErrors.fullName}
+                  </span>
+                )}
+              </div>
+
+              {/* Email */}
+              <div className="w-full flex flex-col gap-2">
+                <span className="text-black/80 text-sm md:text-base">
+                  Email
+                </span>
+                <input
+                  type="email"
+                  value={editUserFormData.email}
+                  onChange={(e) =>
+                    handleEditFormChange("email", e.target.value)
+                  }
+                  className="focus:outline-none border-black/50 border rounded-sm px-3 py-2 md:py-3 shadow-none text-sm md:text-base"
+                  placeholder="Enter email address"
+                />
+                {editErrors.email && (
+                  <span className="text-red-500 text-xs md:text-sm">
+                    {editErrors.email}
+                  </span>
+                )}
+              </div>
+
+              {/* Role and Status */}
+              <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div className="w-full flex flex-col gap-2">
+                  <span className="text-black/80 text-sm md:text-base">
+                    Role
+                  </span>
+                  <Select
+                    value={editUserFormData.role}
+                    onValueChange={(value) =>
+                      handleEditFormChange("role", value)
+                    }
+                  >
+                    <SelectTrigger className="w-full border border-black/50 p-3 md:p-4 rounded-sm">
+                      <SelectValue placeholder="Select role" />
+                    </SelectTrigger>
+                    <SelectContent className="border-black/80">
+                      <SelectItem value="partner">Partner</SelectItem>
+                      <SelectItem value="customer">Customer</SelectItem>
+                      <SelectItem value="staff">Staff</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {editErrors.role && (
+                    <span className="text-red-500 text-xs md:text-sm">
+                      {editErrors.role}
+                    </span>
+                  )}
+                </div>
+
+                <div className="w-full flex flex-col gap-2">
+                  <span className="text-black/80 text-sm md:text-base">
+                    Status
+                  </span>
+                  <Select
+                    value={editUserFormData.status}
+                    onValueChange={(value) =>
+                      handleEditFormChange("status", value)
+                    }
+                  >
+                    <SelectTrigger className="w-full border border-black/50 p-3 md:p-4 rounded-sm">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent className="border-black/80">
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="suspended">Suspended</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {editErrors.status && (
+                    <span className="text-red-500 text-xs md:text-sm">
+                      {editErrors.status}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <AlertDialogFooter className="w-full mt-6 flex flex-col-reverse md:flex-row gap-3">
+              <button
+                onClick={handleCloseEditModal}
+                className="w-full md:w-1/2 py-2 md:py-3 px-4 md:px-6 bg-transparent border border-gray-300 hover:bg-gray-50 
+                text-gray-700 rounded-sm transition-colors duration-200 ease-in-out"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUpdateUser}
+                disabled={isSubmitting}
+                className="w-full md:w-1/2 py-2 md:py-3 px-4 md:px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out
+                disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? "Updating User..." : "Update User"}
+              </button>
+            </AlertDialogFooter>
+          </div>
         </AlertDialogContent>
       </AlertDialog>
 

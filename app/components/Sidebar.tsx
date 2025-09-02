@@ -7,6 +7,7 @@ import { IoBriefcaseOutline } from "react-icons/io5";
 import { PiWallet } from "react-icons/pi";
 import { MdOutlineAnalytics } from "react-icons/md";
 import { CiUser } from "react-icons/ci";
+import { Star } from "lucide-react";
 import { CiSettings } from "react-icons/ci";
 
 function SideBar() {
@@ -78,6 +79,17 @@ function SideBar() {
       >
         <CiUser className="inline-block mr-2 text-xl" />
         <span className="text-sm">User Management</span>
+      </Link>
+      <Link
+        href={"/rating-&-reviews"}
+        className={`${
+          pathname === "/rating-&-reviews"
+            ? "font-bold bg-white text-black"
+            : "bg-transparent text-white"
+        } p-3 hover:bg-white hover:text-black hover:font-bold transition-colors flex items-center`}
+      >
+        <Star className="inline-block mr-2 w-[20px] h-[20px]" />
+        <span className="text-sm">Rating & Reviews</span>
       </Link>
       <Link
         href={"/settings"}
