@@ -8,7 +8,6 @@ export const metadata: Metadata = {
 function EscrowControlpage() {
   return (
     <section className="w-full flex flex-col gap-5 p-5">
-      {/* <BookingLogsTable /> */}
       <EscrowTable />
     </section>
   );

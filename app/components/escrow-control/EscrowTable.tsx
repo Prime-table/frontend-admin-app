@@ -18,6 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import Image from "next/image";
 
 function EscrowTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -151,61 +152,62 @@ function EscrowTable() {
           </div>
         </div>
       </header>
-      <div className="border border-black/30 rounded-sm pt-4">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-b-black/30 hover:bg-transparent">
-              <TableHead className="font-medium pb-3">Booking ID</TableHead>
-              <TableHead className="font-medium pb-3">Restaurant</TableHead>
-              <TableHead className="font-medium pb-3">Amount</TableHead>
-              <TableHead className="font-medium pb-3">Payout Date</TableHead>
-              <TableHead className="font-medium pb-3">Status</TableHead>
-              <TableHead className="font-medium pb-3">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.map((escrow, index) => (
-              <TableRow key={index} className="border-b-black/30">
-                <TableCell className="p-3">{escrow.bookingId}</TableCell>
-                <TableCell className="p-3">{escrow.restaurant}</TableCell>
-                <TableCell className="p-3">{escrow.amount}</TableCell>
-                <TableCell className="p-3">
-                  {new Date(escrow.payoutDate).toLocaleDateString()}
-                </TableCell>
-                <TableCell className={`p-3 ${statusClass(escrow.status)}`}>
-                  {escrow.status}
-                </TableCell>
-                <TableCell className="p-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="border-0 focus:outline-none">
-                      <BsThreeDotsVertical
-                        className="text-2xl text-black 
+      <div className="w-full flex flex-col md:flex-row items-center md:items-start gap-5 justify-center md:justify-between">
+        <div className="w-full md:w-fit md:order-2 p-5 flex flex-col items-center justify-center gap-5 rounded-md bg-green-100">
+          <div
+            className="w-12 h-12 bg-green-500 rounded-md 
+                flex items-center justify-center"
+          >
+            <Image
+              alt="Cash"
+              src="/cash.svg"
+              width={24}
+              height={24}
+              className="w-full h-full object-contain"
+            />
+          </div>
+          <div className="flex flex-col items-center justify-center gap-1">
+            <span className="text-xl md:text-2xl font-bold">₦250,000</span>
+            <span className="">Total Escrow Balance</span>
+          </div>
+        </div>
+        <div className="w-full md:w-fit overflow-x-auto md:flex-1 md:order-1 border border-black/30 rounded-sm pt-4">
+          <Table>
+            <TableHeader>
+              <TableRow className="border-b-black/30 hover:bg-transparent">
+                <TableHead className="font-medium pb-3">Booking ID</TableHead>
+                <TableHead className="font-medium pb-3">Restaurant</TableHead>
+                <TableHead className="font-medium pb-3">Amount</TableHead>
+                <TableHead className="font-medium pb-3">Payout Date</TableHead>
+                <TableHead className="font-medium pb-3">Status</TableHead>
+                <TableHead className="font-medium pb-3">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((escrow, index) => (
+                <TableRow key={index} className="border-b-black/30">
+                  <TableCell className="p-3">{escrow.bookingId}</TableCell>
+                  <TableCell className="p-3">{escrow.restaurant}</TableCell>
+                  <TableCell className="p-3">{escrow.amount}</TableCell>
+                  <TableCell className="p-3">
+                    {new Date(escrow.payoutDate).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell className={`p-3 ${statusClass(escrow.status)}`}>
+                    {escrow.status}
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="border-0 focus:outline-none">
+                        <BsThreeDotsVertical
+                          className="text-2xl text-black 
                   cursor-pointer hover:text-black/80"
-                      />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-full bg-white
+                        />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-full bg-white
             flex flex-col items-center justify-center gap-2 border-none p-3"
-                    >
-                      {escrow.status === "approved" ? (
-                        <DropdownMenuItem
-                          onClick={() => handleAction("suspend", index)}
-                          className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
-                        >
-                          Reject
-                        </DropdownMenuItem>
-                      ) : escrow.status === "pending" ? (
-                        <>
-                          <DropdownMenuItem
-                            onClick={() => handleAction("approve", index)}
-                            className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
-                          >
-                            Approve
-                          </DropdownMenuItem>
+                      >
+                        {escrow.status === "approved" ? (
                           <DropdownMenuItem
                             onClick={() => handleAction("suspend", index)}
                             className="bg-transparent text-sm font-semibold w-full border border-red-primary 
@@ -214,26 +216,45 @@ function EscrowTable() {
                           >
                             Reject
                           </DropdownMenuItem>
-                        </>
-                      ) : (
-                        escrow.status === "rejected" && (
-                          <DropdownMenuItem
-                            onClick={() => handleAction("approve", index)}
-                            className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                        ) : escrow.status === "pending" ? (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => handleAction("approve", index)}
+                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"
-                          >
-                            Approve
-                          </DropdownMenuItem>
-                        )
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                            >
+                              Approve
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleAction("suspend", index)}
+                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                rounded-md flex items-center justify-center"
+                            >
+                              Reject
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          escrow.status === "rejected" && (
+                            <DropdownMenuItem
+                              onClick={() => handleAction("approve", index)}
+                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                rounded-md flex items-center justify-center"
+                            >
+                              Approve
+                            </DropdownMenuItem>
+                          )
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
