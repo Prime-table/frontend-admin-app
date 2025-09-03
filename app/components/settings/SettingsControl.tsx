@@ -8,6 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import toast from "react-hot-toast";
+import { useAppContext } from "@/app/providers/provider";
+import ColorPicker from "react-pick-color";
 
 function SettingsControl() {
   const [activeTab, setActiveTab] = useState("general");
@@ -19,7 +21,6 @@ function SettingsControl() {
     reservation: 60,
     supportEmail: "Support@primetable.com",
   });
-
   const currencies = [
     {
       value: "NGN(₦)",
@@ -63,7 +64,8 @@ function SettingsControl() {
       supportEmail: "Support@primetable.com",
     });
   };
-  const handleSaveGeneralChanges = async () => {
+  const handleSaveGeneralChanges = async (e: React.FormEvent) => {
+    e.preventDefault();
     setIsSaving(true);
     try {
       // Simulate an API call
@@ -76,6 +78,76 @@ function SettingsControl() {
       setIsSaving(false);
     }
   };
+
+  //   branding form
+  const {
+    setPrimaryColor,
+    setSecondaryColor,
+    defaultPrimaryColor,
+    defaultSecondaryColor,
+  } = useAppContext();
+  const [isSavingBrandingState, setIsSavingBrandingState] = useState(false);
+  const [brandingFormState, setBrandingFormState] = useState({
+    primaryColor: defaultPrimaryColor,
+    secondaryColor: defaultSecondaryColor,
+    logo: "/logo.png",
+    favicon: "/favicon.ico",
+  });
+  const handleBrandingReset = () => {
+    setBrandingFormState({
+      primaryColor: defaultPrimaryColor,
+      secondaryColor: defaultSecondaryColor,
+      logo: "/logo.png",
+      favicon: "/favicon.ico",
+    });
+  };
+  //   color picker
+  const [openPrimaryColorPicker, setOpenPrimaryColorPicker] = useState(false);
+  const [openSecondaryColorPicker, setOpenSecondaryColorPicker] =
+    useState(false);
+  const handlePrimaryColorChange = (color: any) => {
+    setBrandingFormState({
+      ...brandingFormState,
+      primaryColor: color.hex,
+    });
+  };
+  const handleSecondaryColorChange = (color: any) => {
+    setBrandingFormState({
+      ...brandingFormState,
+      secondaryColor: color.hex,
+    });
+  };
+  const handleCancelPrimaryColorChange = () => {
+    setBrandingFormState((prev) => ({
+      ...prev,
+      primaryColor: defaultPrimaryColor,
+    }));
+    setOpenPrimaryColorPicker(false);
+  };
+  const handleCancelSecondaryColorChange = () => {
+    setBrandingFormState((prev) => ({
+      ...prev,
+      secondaryColor: defaultSecondaryColor,
+    }));
+    setOpenSecondaryColorPicker(false);
+  };
+  const handleSaveBrandingChanges = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingBrandingState(true);
+    try {
+      // Simulate an API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setPrimaryColor(brandingFormState.primaryColor);
+      setSecondaryColor(brandingFormState.secondaryColor);
+      toast.success("Branding settings saved successfully!");
+    } catch (error) {
+      console.error("Error saving branding settings:", error);
+      toast.error("Failed to save branding settings. Please try again.");
+    } finally {
+      setIsSavingBrandingState(false);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col gap-5">
       {/* header */}
@@ -269,6 +341,159 @@ function SettingsControl() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* branding */}
+        {activeTab === "branding" && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-lg font-medium mb-2">Branding</h3>
+            <form onSubmit={handleSaveBrandingChanges} className="space-y-4">
+              {/* primary */}
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 text-sm">Primary Color</span>
+                {/* color  */}
+                <div className="cursor-pointer w-full md:max-w-[150px] p-3 rounded-md border border-gray-300">
+                  <span
+                    onClick={() => setOpenPrimaryColorPicker(true)}
+                    className="block w-full h-[20px]"
+                    style={{ backgroundColor: brandingFormState.primaryColor }}
+                  ></span>
+                  {openPrimaryColorPicker && (
+                    <div className="fixed inset-0 bg-black/50 z-[50] flex items-center justify-center">
+                      {/* overlay */}
+                      <div
+                        className="absolute inset-0"
+                        onClick={() => setOpenPrimaryColorPicker(false)}
+                      />
+                      <div className="w-fit relative z-[10] p-3 border border-gray-300 rounded-md bg-white">
+                        <ColorPicker
+                          color={brandingFormState.primaryColor}
+                          onChange={handlePrimaryColorChange}
+                        />
+                        {/* action buttons */}
+                        <div className="pt-4 w-full flex items-center justify-between gap-3">
+                          <button
+                            onClick={handleCancelPrimaryColorChange}
+                            className="w-1/2 py-3 px-6 bg-gray-300 hover:bg-gray-300/80 
+                text-black border border-transparent rounded-sm transition-colors duration-200 ease-in-out"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            className="w-1/2 py-3 px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out flex items-center justify-center"
+                            onClick={() => setOpenPrimaryColorPicker(false)}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* secondary */}
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 text-sm">Secondary Color</span>
+                <div className="w-full md:max-w-[150px] p-3 rounded-md border border-gray-300">
+                  <span
+                    onClick={() => setOpenSecondaryColorPicker(true)}
+                    className="block w-full h-[20px]"
+                    style={{
+                      backgroundColor: brandingFormState.secondaryColor,
+                    }}
+                  ></span>
+                  {openSecondaryColorPicker && (
+                    <div className="fixed inset-0 bg-black/50 z-[50] flex items-center justify-center">
+                      {/* overlay */}
+                      <div
+                        className="absolute inset-0"
+                        onClick={() => setOpenSecondaryColorPicker(false)}
+                      />
+                      <div className="w-fit relative z-[10] p-3 border border-gray-300 rounded-md bg-white">
+                        <ColorPicker
+                          color={brandingFormState.secondaryColor}
+                          onChange={handleSecondaryColorChange}
+                        />
+                        {/* action buttons */}
+                        <div className="pt-4 w-full flex items-center justify-between gap-3">
+                          <button
+                            onClick={handleCancelSecondaryColorChange}
+                            className="w-1/2 py-3 px-6 bg-gray-300 hover:bg-gray-300/80 
+                text-black border border-transparent rounded-sm transition-colors duration-200 ease-in-out"
+                          >
+                            Reset
+                          </button>
+                          <button
+                            className="w-1/2 py-3 px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out flex items-center justify-center"
+                            onClick={() => setOpenSecondaryColorPicker(false)}
+                          >
+                            Done
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              {/* logo */}
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 text-sm">Logo</span>
+                <input
+                  type="file"
+                  // value={brandingFormState.logo}
+                  placeholder="Upload .SVG/ .PNG"
+                  onChange={(e) =>
+                    setBrandingFormState({
+                      ...brandingFormState,
+                      logo: e.target.files ? e.target.files[0].name : "",
+                    })
+                  }
+                  className="w-full md:max-w-[400px] border border-gray-300 rounded-md p-2 focus:outline-[1px] focus:outline-red-primary"
+                />
+              </div>
+              {/* favicon */}
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 text-sm">Favicon</span>
+                <input
+                  type="file"
+                  onChange={(e) =>
+                    setBrandingFormState({
+                      ...brandingFormState,
+                      favicon: e.target.files ? e.target.files[0].name : "",
+                    })
+                  }
+                  className="w-full md:max-w-[400px] border border-gray-300 rounded-md p-2 focus:outline-[1px] focus:outline-red-primary"
+                />
+              </div>
+              <div className="pt-4 w-full flex flex-col md:flex-row items-center gap-5 justify-center md:justify-end">
+                <button
+                  onClick={handleBrandingReset}
+                  className="w-full lg:w-1/4 xl:w-1/5 py-3 px-6 bg-gray-300 hover:bg-gray-300/80 
+                text-black border border-transparent rounded-sm transition-colors duration-200 ease-in-out"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={handleSaveBrandingChanges}
+                  disabled={isSavingBrandingState}
+                  type="submit"
+                  className="w-full lg:w-1/4 xl:w-1/5 py-3 px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isSavingBrandingState ? "Saving Changes..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* integration */}
+        {activeTab === "integration" && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-lg font-medium mb-2">General Settings</h3>
           </div>
         )}
       </div>
