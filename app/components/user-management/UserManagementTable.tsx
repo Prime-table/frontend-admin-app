@@ -852,7 +852,7 @@ function UserManagementTable() {
       </div>
 
       {/* Search and Filters */}
-      <div className="w-full flex flex-col items-center md:flex-row justify-between gap-4 md:gap-5">
+      <div className="w-full flex flex-col lg:items-center lg:flex-row justify-between gap-4 md:gap-5">
         {/* Search Field */}
         <div className="flex-1 flex items-center justify-end">
           <input
@@ -860,7 +860,7 @@ function UserManagementTable() {
             placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-2/3 mx-auto px-4 py-2 md:py-3 border border-black/30 rounded-sm 
+            className="w-full lg:w-2/3 mx-auto px-4 py-2 md:py-3 border border-black/30 rounded-sm 
               focus:outline-none focus:border-red-primary/50 transition-colors duration-300"
           />
         </div>

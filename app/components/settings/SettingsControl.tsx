@@ -10,6 +10,14 @@ import {
 import toast from "react-hot-toast";
 import { useAppContext } from "@/app/providers/provider";
 import ColorPicker from "react-pick-color";
+import {
+  Table,
+  TableHeader,
+  TableHead,
+  TableCell,
+  TableBody,
+  TableRow,
+} from "@/components/ui/table";
 
 function SettingsControl() {
   const [activeTab, setActiveTab] = useState("general");
@@ -148,6 +156,147 @@ function SettingsControl() {
     }
   };
 
+  //   integration state
+  const apiKeysArr = [
+    {
+      id: 1,
+      key: "92de-f23c-xxxx",
+      createdAt: "2025-09-01",
+      status: "active",
+    },
+  ];
+  const [apiKeys, setApiKeys] = useState(apiKeysArr);
+  const [isGeneratingNewKey, setIsGeneratingNewKey] = useState(false);
+  const handleGenerateNewKey = async () => {
+    setIsGeneratingNewKey(true);
+    try {
+      // Simulate an API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const randomString = Math.random().toString(36).substring(2, 15);
+      setApiKeys((prev) => [
+        ...prev,
+        {
+          id: prev.length + 1,
+          key: randomString,
+          createdAt: new Date().toISOString(),
+          status: "active",
+        },
+      ]);
+      toast.success("New API key generated successfully!");
+    } catch (error) {
+      console.error("Error generating new API key:", error);
+      toast.error("Failed to generate new API key. Please try again.");
+    } finally {
+      setIsGeneratingNewKey(false);
+    }
+  };
+
+  //   notification state
+  const [notificationFormState, setNotificationFormState] = useState({
+    partnerApprovals: true,
+    newBookings: true,
+    escrowPayouts: true,
+    sytemUpdates: false,
+    weeklyReports: true,
+    securityAlerts: true,
+  });
+
+  const handleToggle = (key: keyof typeof notificationFormState) => {
+    setNotificationFormState((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const labels: Record<keyof typeof notificationFormState, string> = {
+    partnerApprovals: "Partner Approvals",
+    newBookings: "New Bookings",
+    escrowPayouts: "Escrow Payouts",
+    sytemUpdates: "System Updates",
+    weeklyReports: "Weekly Reports",
+    securityAlerts: "Security Alerts",
+  };
+
+  const handleNotificationsReset = () => {
+    setNotificationFormState({
+      partnerApprovals: true,
+      newBookings: true,
+      escrowPayouts: true,
+      sytemUpdates: false,
+      weeklyReports: true,
+      securityAlerts: true,
+    });
+  };
+
+  const [isSavingNotificationState, setIsSavingNotificationState] =
+    useState(false);
+  const handleSaveNotifications = async () => {
+    setIsSavingNotificationState(true);
+    try {
+      // Simulate an API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.success("Notification settings saved successfully!");
+    } catch (error) {
+      console.error("Error saving notification settings:", error);
+      toast.error("Failed to save notification settings. Please try again.");
+    } finally {
+      setIsSavingNotificationState(false);
+    }
+  };
+
+  //   security state
+  const [securityFormState, setSecurityFormState] = useState({
+    twoFactorAuthentication: true,
+    requireStrongPassword: true,
+    sessionTimeout: 30,
+    failedLoginLockout: 5,
+  });
+
+  const activeSessions = [
+    {
+      label: "Chrome - Lagos, Ng",
+      status: "active",
+    },
+    {
+      label: "FireFox - Abuja, Ng",
+      status: "expired",
+    },
+  ];
+
+  const handleSecurityChange = (
+    key: keyof typeof securityFormState,
+    value: any
+  ) => {
+    setSecurityFormState((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
+
+  const handleSecurityReset = () => {
+    setSecurityFormState({
+      twoFactorAuthentication: true,
+      requireStrongPassword: true,
+      sessionTimeout: 30,
+      failedLoginLockout: 5,
+    });
+  };
+
+  const [isSavingSecurityState, setIsSavingSecurityState] = useState(false);
+  const handleSaveSecurity = async () => {
+    setIsSavingSecurityState(true);
+    try {
+      // Simulate an API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      toast.success("Security settings saved successfully!");
+    } catch (error) {
+      console.error("Error saving security settings:", error);
+      toast.error("Failed to save security settings. Please try again.");
+    } finally {
+      setIsSavingSecurityState(false);
+    }
+  };
+
   return (
     <div className="w-full flex flex-col gap-5">
       {/* header */}
@@ -194,11 +343,11 @@ function SettingsControl() {
         <span
           className={`cursor-pointer py-4 px-3 transition-colors  text-black hover:text-red-primary
             duration-300 ease-in-out relative text-sm ${
-              activeTab === "notificaton"
+              activeTab === "notification"
                 ? "text-red-primary after:absolute after:left-0 after:right-0 after:bottom-0 after:h-[2px] after:bg-red-primary"
                 : ""
             }`}
-          onClick={() => setActiveTab("notificaton")}
+          onClick={() => setActiveTab("notification")}
         >
           Notification
         </span>
@@ -468,6 +617,7 @@ function SettingsControl() {
                   className="w-full md:max-w-[400px] border border-gray-300 rounded-md p-2 focus:outline-[1px] focus:outline-red-primary"
                 />
               </div>
+              {/* action buttons */}
               <div className="pt-4 w-full flex flex-col md:flex-row items-center gap-5 justify-center md:justify-end">
                 <button
                   onClick={handleBrandingReset}
@@ -493,7 +643,331 @@ function SettingsControl() {
         {/* integration */}
         {activeTab === "integration" && (
           <div className="flex flex-col gap-3">
-            <h3 className="text-lg font-medium mb-2">General Settings</h3>
+            <h3 className="text-lg font-medium mb-2">Integration</h3>
+            {/* external apis */}
+            <div className="flex flex-col gap-5 w-full xl:max-w-[50%]">
+              {/* payment gateway */}
+              <div className="flex flex-col md:flex-row md:items-center gap-2 justify-center md:justify-between">
+                {/* api */}
+                <span>Payment Gateway (Stripe)</span>
+                {/* actions */}
+                <div className="w-full md:w-1/2 flex items-center gap-2">
+                  <button
+                    className={`w-1/2 bg-green-100 text-green-500 py-2 px-4 text-center capitalize rounded-sm border border-green-500 cursor-not-allowed pointer-events-none`}
+                  >
+                    connected
+                  </button>
+                  <button
+                    className={`w-1/2 bg-blue-100 hover:bg-blue-100/50 text-blue-500 hover:text-blue-400 transition-colors 
+                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-blue-500 cursor-pointer`}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+
+              {/* email service */}
+              <div className="flex flex-col md:flex-row  md:items-center gap-2 justify-center md:justify-between">
+                {/* api */}
+                <span>Email Service (SendGrid)</span>
+                {/* actions */}
+                <div className="w-full md:w-1/2 flex items-center gap-2">
+                  <button
+                    className={`w-1/2 bg-green-100 text-green-500 py-2 px-4 text-center capitalize rounded-sm border border-green-500 cursor-not-allowed pointer-events-none`}
+                  >
+                    connected
+                  </button>
+                  <button
+                    className={`w-1/2 bg-blue-100 hover:bg-blue-100/50 text-blue-500 hover:text-blue-400 transition-colors 
+                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-blue-500 cursor-pointer`}
+                  >
+                    Disconnect
+                  </button>
+                </div>
+              </div>
+
+              {/* sms provider */}
+              <div className="w-full flex flex-col md:flex-row  md:items-center gap-2 justify-center md:justify-between">
+                {/* api */}
+                <span>Sms Provider (Twilio)</span>
+                {/* actions */}
+                <div className="w-full md:w-1/2 flex items-center gap-2">
+                  <button
+                    className={`w-1/2 bg-orange-100 text-orange-500 py-2 px-4 text-center capitalize rounded-sm border border-orange-500 cursor-not-allowed pointer-events-none`}
+                  >
+                    Link
+                  </button>
+                  <button
+                    className={`w-1/2 bg-blue-100 hover:bg-blue-100/50 text-blue-500 hover:text-blue-400 transition-colors 
+                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-blue-500 cursor-pointer`}
+                  >
+                    Connect
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* api access key */}
+            <div className="flex flex-col gap-1">
+              <h3 className="text-lg font-medium mb-2">API ACCESS KEYS</h3>
+              {/* api keys list */}
+              <div className="w-full lg:w-2/3 overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-transparent">
+                      <TableHead className="text-gray-400 text-sm">
+                        Key
+                      </TableHead>
+                      <TableHead className="text-gray-400 text-sm">
+                        Date Created
+                      </TableHead>
+                      <TableHead className="text-gray-400 text-sm">
+                        Status
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {apiKeys.map((key) => (
+                      <TableRow key={key.id} className="border-gray-300">
+                        <TableCell>{key.key}</TableCell>
+                        <TableCell>
+                          {new Date(key.createdAt).toDateString()}
+                        </TableCell>
+                        <TableCell>{key.status}</TableCell>
+                        <TableCell>
+                          {/* actions */}
+                          <div className="w-full md:w-1/2 flex items-center gap-2">
+                            <button
+                              className={` bg-blue-100 hover:bg-blue-100/50 text-blue-500 hover:text-blue-400 transition-colors 
+                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-blue-500 cursor-pointer`}
+                            >
+                              Copy
+                            </button>
+                            <button
+                              className={` bg-red-100 hover:bg-red-100/50 text-red-500 hover:text-red-400 transition-colors 
+                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-red-500 cursor-pointer`}
+                            >
+                              Revoke
+                            </button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <div className="pt-4 w-full flex flex-col md:flex-row items-center gap-5 justify-center md:justify-start">
+                  <button
+                    onClick={handleGenerateNewKey}
+                    disabled={isGeneratingNewKey}
+                    type="submit"
+                    className="w-full md:w-fit py-3 px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isGeneratingNewKey
+                      ? "Generating New Key..."
+                      : "Generate New Key"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* notification */}
+        {activeTab === "notification" && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-lg font-medium mb-2">Notification</h3>
+            <form>
+              {/* toggles */}
+              <div className="w-full md:max-w-[50%] space-y-4">
+                {Object.entries(notificationFormState).map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="flex items-center justify-between md:justify-start gap-3"
+                  >
+                    {/* Toggle */}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleToggle(key as keyof typeof notificationFormState)
+                      }
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors 
+                        duration-300 ${
+                          value ? "bg-red-primary" : "bg-gray-300"
+                        }`}
+                    >
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform 
+                            duration-300 ${
+                              value ? "translate-x-6" : "translate-x-1"
+                            }`}
+                      />
+                    </button>
+                    <span>
+                      {labels[key as keyof typeof notificationFormState]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {/* action buttons */}
+              <div className="pt-4 w-full flex flex-col md:flex-row items-center gap-5 justify-center md:justify-end">
+                <button
+                  onClick={handleNotificationsReset}
+                  className="w-full lg:w-1/4 xl:w-1/5 py-3 px-6 bg-gray-300 hover:bg-gray-300/80 
+                text-black border border-transparent rounded-sm transition-colors duration-200 ease-in-out"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={handleSaveNotifications}
+                  disabled={isSavingNotificationState}
+                  type="submit"
+                  className="w-full lg:w-1/4 xl:w-1/5 py-3 px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isSavingNotificationState
+                    ? "Saving Changes..."
+                    : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {/* security */}
+        {activeTab === "security" && (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-lg font-medium mb-2">Security</h3>
+            <form className="space-y-4">
+              <div className="flex items-center justify-between md:justify-start gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSecurityChange(
+                      "twoFactorAuthentication",
+                      !securityFormState.twoFactorAuthentication
+                    )
+                  }
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors 
+                        duration-300 ${
+                          securityFormState.twoFactorAuthentication
+                            ? "bg-red-primary"
+                            : "bg-gray-300"
+                        }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform 
+                            duration-300 ${
+                              securityFormState.twoFactorAuthentication
+                                ? "translate-x-6"
+                                : "translate-x-1"
+                            }`}
+                  />
+                </button>
+                <span>Two-Factor Authentication (2FA)</span>
+              </div>
+              <div className="flex items-center justify-between md:justify-start gap-3">
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleSecurityChange(
+                      "requireStrongPassword",
+                      !securityFormState.requireStrongPassword
+                    )
+                  }
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors 
+                        duration-300 ${
+                          securityFormState.requireStrongPassword
+                            ? "bg-red-primary"
+                            : "bg-gray-300"
+                        }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform 
+                            duration-300 ${
+                              securityFormState.requireStrongPassword
+                                ? "translate-x-6"
+                                : "translate-x-1"
+                            }`}
+                  />
+                </button>
+                <span>Require Strong Password</span>
+              </div>
+              {/* session timeout */}
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 text-sm">
+                  Session Timeout (mins)
+                </span>
+                <input
+                  type="number"
+                  value={securityFormState.sessionTimeout || 0}
+                  onChange={(e) =>
+                    setSecurityFormState({
+                      ...securityFormState,
+                      sessionTimeout: Number(e.target.value),
+                    })
+                  }
+                  className="w-full md:max-w-[400px] border border-gray-300 rounded-md p-2 focus:outline-[1px] focus:outline-red-primary"
+                />
+              </div>
+              {/* failed loggins */}
+              <div className="flex flex-col gap-1">
+                <span className="text-gray-500 text-sm">
+                  Failed login Lockout (attempts)
+                </span>
+                <input
+                  type="number"
+                  value={securityFormState.failedLoginLockout || 0}
+                  onChange={(e) =>
+                    setSecurityFormState({
+                      ...securityFormState,
+                      failedLoginLockout: Number(e.target.value),
+                    })
+                  }
+                  className="w-full md:max-w-[400px] border border-gray-300 rounded-md p-2 focus:outline-[1px] focus:outline-red-primary"
+                />
+              </div>
+              {/* active sessions */}
+              <h3 className="text-lg font-medium mb-2">Active Sessions</h3>
+              <div className="w-full lg:max-w-1/3 xl:max-w-1/4 flex flex-col gap-2">
+                {activeSessions.map((session, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-2"
+                  >
+                    <span className="text-sm">{session.label}</span>
+                    <span
+                      className={`text-sm capitalize ${
+                        session.status === "active"
+                          ? "text-green-500"
+                          : "text-gray-300"
+                      }`}
+                    >
+                      {session.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {/* action buttons */}
+              <div className="pt-4 w-full flex flex-col md:flex-row items-center gap-5 justify-center md:justify-end">
+                <button
+                  onClick={handleSecurityReset}
+                  className="w-full lg:w-1/4 xl:w-1/5 py-3 px-6 bg-gray-300 hover:bg-gray-300/80 
+                text-black border border-transparent rounded-sm transition-colors duration-200 ease-in-out"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={handleSaveSecurity}
+                  disabled={isSavingSecurityState}
+                  type="submit"
+                  className="w-full lg:w-1/4 xl:w-1/5 py-3 px-6 bg-red-primary hover:bg-red-primary/90 
+                text-white border border-transparent rounded-sm transition-colors duration-200 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                >
+                  {isSavingSecurityState ? "Saving Changes..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>
