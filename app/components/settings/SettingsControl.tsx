@@ -19,6 +19,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+type ApiKey = {
+  id: number;
+  key: string;
+  createdAt: string;
+  status: "active" | "revoked";
+};
+
 function SettingsControl() {
   const [activeTab, setActiveTab] = useState("general");
   const [isSaving, setIsSaving] = useState(false);
@@ -73,19 +80,37 @@ function SettingsControl() {
     });
   };
   const handleSaveGeneralChanges = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success("General settings saved successfully!");
-    } catch (error) {
-      console.error("Error saving general settings:", error);
-      toast.error("Failed to save general settings. Please try again.");
-    } finally {
-      setIsSaving(false);
+  e.preventDefault();
+  setIsSaving(true);
+
+  try {
+    const res = await fetch("http://localhost:5000/prime-table-admin/settings/general-settings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // attach token if required
+      },
+      body: JSON.stringify({
+        siteName: "Prime Table", // replace with actual state values
+        maintenanceMode: false,
+      }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.message || "Something went wrong");
     }
-  };
+
+    const result = await res.json();
+    toast.success(result.message || "General settings saved successfully!");
+  } catch (error: any) {
+    console.error("Error saving general settings:", error);
+    toast.error(error.message || "Failed to save general settings. Please try again.");
+  } finally {
+    setIsSaving(false);
+  }
+};
+
 
   //   branding form
   const {
@@ -140,56 +165,110 @@ function SettingsControl() {
     setOpenSecondaryColorPicker(false);
   };
   const handleSaveBrandingChanges = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSavingBrandingState(true);
-    try {
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setPrimaryColor(brandingFormState.primaryColor);
-      setSecondaryColor(brandingFormState.secondaryColor);
-      toast.success("Branding settings saved successfully!");
-    } catch (error) {
-      console.error("Error saving branding settings:", error);
-      toast.error("Failed to save branding settings. Please try again.");
-    } finally {
-      setIsSavingBrandingState(false);
+  e.preventDefault();
+  setIsSavingBrandingState(true);
+
+  try {
+    const response = await fetch("http://localhost:5000/prime-table-admin/settings/branding", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        primaryColor: brandingFormState.primaryColor,
+        secondaryColor: brandingFormState.secondaryColor,
+        logo: brandingFormState.logo,
+        favicon: brandingFormState.favicon,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save branding settings");
     }
-  };
+
+    const data = await response.json();
+
+    // Update UI with API response if needed
+    setPrimaryColor(data.primaryColor || brandingFormState.primaryColor);
+    setSecondaryColor(data.secondaryColor || brandingFormState.secondaryColor);
+
+    toast.success("Branding settings saved successfully!");
+  } catch (error) {
+    console.error("Error saving branding settings:", error);
+    toast.error("Failed to save branding settings. Please try again.");
+  } finally {
+    setIsSavingBrandingState(false);
+  }
+};
+
 
   //   integration state
-  const apiKeysArr = [
-    {
-      id: 1,
-      key: "92de-f23c-xxxx",
-      createdAt: "2025-09-01",
-      status: "active",
-    },
-  ];
-  const [apiKeys, setApiKeys] = useState(apiKeysArr);
+  const apiKeysArr: ApiKey[] = [
+  {
+    id: 1,
+    key: "92de-f23c-xxxx",
+    createdAt: "2025-09-01",
+    status: "active",
+  },
+];
+
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>(apiKeysArr);
   const [isGeneratingNewKey, setIsGeneratingNewKey] = useState(false);
   const handleGenerateNewKey = async () => {
-    setIsGeneratingNewKey(true);
-    try {
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      const randomString = Math.random().toString(36).substring(2, 15);
-      setApiKeys((prev) => [
-        ...prev,
-        {
-          id: prev.length + 1,
-          key: randomString,
-          createdAt: new Date().toISOString(),
-          status: "active",
-        },
-      ]);
-      toast.success("New API key generated successfully!");
-    } catch (error) {
-      console.error("Error generating new API key:", error);
-      toast.error("Failed to generate new API key. Please try again.");
-    } finally {
-      setIsGeneratingNewKey(false);
+  setIsGeneratingNewKey(true);
+  try {
+    const response = await fetch(
+      "http://localhost:5000/prime-table-admin/settings/integration/add-api-keys",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          key: Math.random().toString(36).substring(2, 15),
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Backend error response:", errorText);
+      throw new Error("Failed to generate API key");
     }
-  };
+
+    const data = await response.json();
+    setApiKeys(data.apiKeys);
+    toast.success("New API key generated successfully!");
+  } catch (error) {
+    console.error("Error generating new API key:", error);
+    toast.error("Failed to generate new API key. Please try again.");
+  } finally {
+    setIsGeneratingNewKey(false);
+  }
+};
+
+// Copy API key
+const handleCopiedKey = (key: string) => {
+  navigator.clipboard.writeText(key)
+    .then(() => toast.success("API key copied to clipboard!"))
+    .catch(() => toast.error("Failed to copy API key"));
+};
+
+// Revoke API key
+const handleRevokedKey = async (id: number) => {
+  try {
+    const response = await fetch(`http://localhost:5000/prime-table-admin/settings/integration/api-keys/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Failed to revoke API key");
+
+    setApiKeys(prev => prev.filter(k => k.id !== id)); // update frontend state
+    toast.success("API key revoked successfully!");
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to revoke API key. Please try again.");
+  }
+};
+
+
 
   //   notification state
   const [notificationFormState, setNotificationFormState] = useState({
@@ -231,18 +310,26 @@ function SettingsControl() {
   const [isSavingNotificationState, setIsSavingNotificationState] =
     useState(false);
   const handleSaveNotifications = async () => {
-    setIsSavingNotificationState(true);
-    try {
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success("Notification settings saved successfully!");
-    } catch (error) {
-      console.error("Error saving notification settings:", error);
-      toast.error("Failed to save notification settings. Please try again.");
-    } finally {
-      setIsSavingNotificationState(false);
-    }
-  };
+  setIsSavingNotificationState(true);
+  try {
+    const response = await fetch("http://localhost:5000/prime-table-admin/settings/notifications", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notificationFormState), // your notification state object
+    });
+
+    if (!response.ok) throw new Error("Failed to save notification settings");
+
+    const data = await response.json();
+    toast.success("Notification settings saved successfully!");
+  } catch (error) {
+    console.error("Error saving notification settings:", error);
+    toast.error("Failed to save notification settings. Please try again.");
+  } finally {
+    setIsSavingNotificationState(false);
+  }
+};
+
 
   //   security state
   const [securityFormState, setSecurityFormState] = useState({
@@ -284,18 +371,33 @@ function SettingsControl() {
 
   const [isSavingSecurityState, setIsSavingSecurityState] = useState(false);
   const handleSaveSecurity = async () => {
-    setIsSavingSecurityState(true);
-    try {
-      // Simulate an API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success("Security settings saved successfully!");
-    } catch (error) {
-      console.error("Error saving security settings:", error);
-      toast.error("Failed to save security settings. Please try again.");
-    } finally {
-      setIsSavingSecurityState(false);
+  setIsSavingSecurityState(true);
+  try {
+    // Make the PUT request to your backend
+    const response = await fetch(
+      "http://localhost:5000/prime-table-admin/settings/security",
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(securityFormState), // pass your current state object
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to save security settings");
     }
-  };
+
+    const data = await response.json();
+    setSecurityFormState(data.security); // update frontend state if needed
+    toast.success("Security settings saved successfully!");
+  } catch (error) {
+    console.error("Error saving security settings:", error);
+    toast.error("Failed to save security settings. Please try again.");
+  } finally {
+    setIsSavingSecurityState(false);
+  }
+};
+
 
   return (
     <div className="w-full flex flex-col gap-5">
@@ -727,29 +829,31 @@ function SettingsControl() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {apiKeys.map((key) => (
-                      <TableRow key={key.id} className="border-gray-300">
-                        <TableCell>{key.key}</TableCell>
+                    {apiKeys.map((apiKeys) => (
+                      <TableRow key={apiKeys.id} className="border-gray-300">
+                        <TableCell>{apiKeys.key}</TableCell>
                         <TableCell>
-                          {new Date(key.createdAt).toDateString()}
+                          {new Date(apiKeys.createdAt).toDateString()}
                         </TableCell>
-                        <TableCell>{key.status}</TableCell>
+                        <TableCell>{apiKeys.status}</TableCell>
                         <TableCell>
                           {/* actions */}
                           <div className="w-full md:w-1/2 flex items-center gap-2">
-                            <button
-                              className={` bg-blue-100 hover:bg-blue-100/50 text-blue-500 hover:text-blue-400 transition-colors 
-                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-blue-500 cursor-pointer`}
-                            >
-                              Copy
-                            </button>
-                            <button
-                              className={` bg-red-100 hover:bg-red-100/50 text-red-500 hover:text-red-400 transition-colors 
-                        duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-red-500 cursor-pointer`}
-                            >
-                              Revoke
-                            </button>
-                          </div>
+                             <button
+                               className="bg-blue-100 hover:bg-blue-100/50 text-blue-500 hover:text-blue-400 transition-colors duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-blue-500 cursor-pointer"
+                               onClick={() => handleCopiedKey(apiKeys.key)}
+                                      >
+                                     Copy
+                              </button>
+
+                              <button
+                                className="bg-red-100 hover:bg-red-100/50 text-red-500 hover:text-red-400 transition-colors duration-200 ease-in-out py-2 px-4 text-center capitalize rounded-sm border border-red-500 cursor-pointer"
+                                onClick={() => handleRevokedKey(apiKeys.id)}
+                                      >
+                                     Revoke
+                                   </button>
+                           </div>
+
                         </TableCell>
                       </TableRow>
                     ))}

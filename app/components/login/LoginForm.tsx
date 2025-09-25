@@ -10,6 +10,7 @@ import Link from "next/link";
 function LoginForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -21,15 +22,29 @@ function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
     try {
-      // Perform login action
-      //   simulate login API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(data);
+      const res = await fetch("http://localhost:5000/prime-table-admin/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+   },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Login failed");
+      }
+
+      const result = await res.json();
+
+      // Save token to localStorage for auth persistence
+      localStorage.setItem("token", result.token);
+
       toast.success("Login successful!");
       router.push("/dashboard");
-    } catch (error) {
-      toast.error("Login failed.");
-      console.error(error);
+    } catch (error: any) {
+      toast.error(error.message || "Login failed.");
+      console.error("Login error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -58,6 +73,7 @@ function LoginForm() {
           <p className="text-xs text-red-500">{errors.email.message}</p>
         )}
       </div>
+
       <div className="flex flex-col space-y-2">
         <label htmlFor="password" className="text-sm">
           Password:
@@ -73,6 +89,7 @@ function LoginForm() {
           <p className="text-xs text-red-500">{errors.password.message}</p>
         )}
       </div>
+
       <button
         disabled={isSubmitting}
         type="submit"
@@ -82,10 +99,11 @@ function LoginForm() {
       >
         {isSubmitting ? "Logging in..." : "Login"}
       </button>
+
       <div className="w-full flex items-end justify-end">
         <Link
           href="/forgot"
-          className="text-sm hover:text-red-primary uration-300 ease-in-out"
+          className="text-sm hover:text-red-primary duration-300 ease-in-out"
         >
           Forgot Password?
         </Link>
