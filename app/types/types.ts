@@ -26,12 +26,19 @@ export type escrowControl = {
 }
 
 export type Users = {
+    _id: string;
     fullName: string;
     email: string;
     role: "partner" | "customer" | "staff";
     status: "approved" | "pending" | "suspended";
     createdAt: string;
     updatedAt: string;
+}
+export type addUserData = {
+  fullName: string;
+  email: string;
+  role: string;
+  status: "approved" | "pending" | "suspended";
 }
 
 export type Reviews = {

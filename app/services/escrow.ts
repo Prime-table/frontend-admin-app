@@ -17,3 +17,20 @@ export const fetchEscrowData = async ()=>{
         throw error;
     }
 }
+
+export const updateEscrowStatus = async (id: string, action: string)=>{
+    try {
+        let endpoint = "";
+        if (action === "approve") endpoint = `${id}/release`;
+        if (action === "suspend") endpoint = `${id}/cancel`;
+        const response = await axios.put(`${BASE_URL}/escrows/${endpoint}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error updating escrow status:", error);
+        throw error;
+    }
+}

@@ -19,7 +19,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
-import { fetchEscrowData } from "@/app/services/escrow";
+import { fetchEscrowData, updateEscrowStatus } from "@/app/services/escrow";
 
 function EscrowTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -36,23 +36,7 @@ function EscrowTable() {
 
   const handleAction = async (action: string, id: string) => {
     try {
-      let endpoint = "";
-      if (action === "approve") endpoint = `${id}/release`;
-      if (action === "suspend") endpoint = `${id}/cancel`;
-
-      const res = await fetch(
-        `http://localhost:5000/prime-table-admin/escrows/${endpoint}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!res.ok) throw new Error("Failed to update escrow");
-
-      const updatedEscrow = await res.json();
-
-      // update frontend state
+      const updatedEscrow = await updateEscrowStatus(id, action);
       setData((prev) =>
         prev
           ? prev.map((esc) => (esc._id === id ? updatedEscrow.escrow : esc))
