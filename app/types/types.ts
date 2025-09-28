@@ -42,3 +42,14 @@ export type Reviews = {
     createdAt: string;
     updatedAt: string;
 }
+
+// auth types
+export type LoginFormData = {
+    email: string;
+    password: string;
+}
+export type adminLoginResponse = {
+    _id: string;
+    email: string;
+    token: string;
+}

@@ -6,6 +6,9 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import Link from "next/link";
+import { loginAdmin } from "@/app/services/auth";
+import { adminLoginResponse } from "@/app/types/types";
+import { setCookie } from "cookies-next/client";
 
 function LoginForm() {
   const router = useRouter();
@@ -21,10 +24,12 @@ function LoginForm() {
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
     try {
-      // Perform login action
-      //   simulate login API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(data);
+      const response: adminLoginResponse = await loginAdmin(data);
+      setCookie("adminToken", response.token, {
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 day
+      });
+      localStorage.setItem("adminEmail", response.email);
       toast.success("Login successful!");
       router.push("/dashboard");
     } catch (error) {

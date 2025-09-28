@@ -2,7 +2,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { IoIosNotifications } from "react-icons/io";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IoChatboxEllipses } from "react-icons/io5";
 import { UserPen, X } from "lucide-react";
 import { HiMenuAlt3 } from "react-icons/hi";
@@ -25,17 +25,28 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import toast from "react-hot-toast";
+import { deleteCookie } from "cookies-next/client";
 function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [openNotifications, setOpenNotifications] = useState(false);
   const [openNav, setOpenNav] = useState(false);
+  const [email, setEmail] = useState<string | null>(null);
+
   const handleLogout = async () => {
+    deleteCookie("adminToken");
     router.push("/login");
     setTimeout(() => {
       toast.success("Logged out successfully");
     }, 800);
   };
+
+  useEffect(() => {
+    if (window) {
+      const adminEmail = localStorage.getItem("adminEmail");
+      setEmail(adminEmail ?? "Mecury Paul");
+    }
+  }, []);
   return (
     <nav className="bg-white w-full p-3 border-b border-b-gray-500/20 shadow-xs relative">
       <div className="w-full max-w-[95%] mx-auto flex items-center justify-between">
@@ -214,9 +225,7 @@ function Navbar() {
                       className="w-8 h-8 object-cover rounded-full"
                     />
                     <div className="flex flex-col gap-1 font-medium">
-                      <span className="text-chetwoodBlue text-xs">
-                        Mecury Paul
-                      </span>
+                      <span className="text-chetwoodBlue text-xs">{email}</span>
                       <span className="text-gray-500 text-xs">Admin</span>
                     </div>
                   </Link>
@@ -246,7 +255,7 @@ function Navbar() {
               className="w-10 h-10 object-cover rounded-full"
             />
             <div className="flex flex-col gap-1 font-medium">
-              <span className="text-chetwoodBlue text-sm">Mecury Paul</span>
+              <span className="text-chetwoodBlue text-sm">{email}</span>
               <span className="text-gray-500 text-xs">Admin</span>
             </div>
           </Link>
