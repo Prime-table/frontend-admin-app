@@ -75,6 +75,30 @@ function BookingLogsTable() {
   };
 
   useEffect(() => {
+  const fetchBookings = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/prime-table-admin/bookings");
+
+      if (!res.ok) throw new Error("Failed to fetch");
+
+      const bookings = await res.json();
+
+      if (bookings.length > 0) {
+        setData(bookings);
+      } else {
+        setData(BookingLogs); // fallback
+      }
+    } catch (error) {
+      console.warn("Backend not available, using dummy data:", error);
+      setData(BookingLogs); // fallback
+    }
+  };
+
+  fetchBookings();
+}, []);
+
+
+  useEffect(() => {
     let filteredData = BookingLogs.filter((log) => {
       // Status filter
       const statusMatch = statusFilter === "all" || log.status === statusFilter;
@@ -155,6 +179,15 @@ function BookingLogsTable() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openDateRangeFilter]);
+
+  const formatCurrency = (value: number, currency: string = "NGN") => {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+  }).format(value);
+};
+
 
   const statusClass = (status: string) => {
     switch (status) {
@@ -404,7 +437,7 @@ function BookingLogsTable() {
                   </TableCell>
                   <TableCell className="p-3">{log.time}</TableCell>
                   <TableCell className="p-3 font-medium">
-                    {log.amount}
+                    {formatCurrency(log.amount)}
                   </TableCell>
                   <TableCell className={`p-3 ${statusClass(log.status)}`}>
                     {log.status}

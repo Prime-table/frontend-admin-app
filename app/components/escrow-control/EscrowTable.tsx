@@ -22,6 +22,7 @@ import Image from "next/image";
 
 function EscrowTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
+  // Start with dummy data, then fill with backend data
   const [data, setData] = useState<escrowControl[]>(EscrowControlData);
   const [openFilter, setOpenFilter] = useState(false);
   const [filterState, setFilterState] = useState("all");
@@ -31,25 +32,59 @@ function EscrowTable() {
     setOpenFilter(false);
   };
 
-  const handleAction = (action: string, index: number) => {
-    if (action === "approve") {
-      const updatedData = [...data];
-      updatedData[index].status = "approved";
-      setData(updatedData);
-    } else if (action === "suspend") {
-      const updatedData = [...data];
-      updatedData[index].status = "rejected";
-      setData(updatedData);
+  const handleAction = async (action: string, id: string) => {
+  try {
+    let endpoint = "";
+    if (action === "approve") endpoint = `${id}/release`;
+    if (action === "suspend") endpoint = `${id}/cancel`;
+
+    const res = await fetch(
+      `http://localhost:5000/prime-table-admin/escrows/${endpoint}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to update escrow");
+
+    const updatedEscrow = await res.json();
+
+    // update frontend state
+    setData((prev) =>
+      prev.map((esc) => (esc._id === id ? updatedEscrow.escrow : esc))
+    );
+  } catch (error) {
+    console.error("Error updating escrow:", error);
+  }
+};
+
+
+
+// Fetch escrows from backend
+useEffect(() => {
+  const fetchEscrows = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/prime-table-admin/escrows");
+      if (!res.ok) throw new Error("Failed to fetch escrows");
+
+      const escrows = await res.json();
+
+      // Apply filter immediately after fetch
+      const filtered = escrows.filter((escrow: escrowControl) => {
+        if (filterState === "all") return true;
+        return escrow.status === filterState;
+      });
+
+      setData(filtered);
+    } catch (error) {
+      console.error("Error fetching escrows:", error);
+      setData(EscrowControlData); // fallback to dummy
     }
   };
 
-  useEffect(() => {
-    const filteredData = EscrowControlData.filter((escrow) => {
-      if (filterState === "all") return true;
-      return escrow.status === filterState;
-    });
-    setData(filteredData);
-  }, [filterState]);
+  fetchEscrows();
+}, [filterState]);
 
   useEffect(() => {
     if (!openFilter) return;
@@ -68,6 +103,18 @@ function EscrowTable() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openFilter]);
+
+  // helper
+const formatCurrency = (amount: number) =>
+  new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    minimumFractionDigits: 0,
+  }).format(amount);
+
+// inside component
+const totalBalance = data.reduce((sum, esc) => sum + Number(esc.amount), 0);
+
 
   const statusClass = (status: string) => {
     switch (status) {
@@ -167,7 +214,7 @@ function EscrowTable() {
             />
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
-            <span className="text-xl md:text-2xl font-bold">₦250,000</span>
+            <span className="text-xl md:text-2xl font-bold">{formatCurrency(totalBalance)}</span>
             <span className="">Total Escrow Balance</span>
           </div>
         </div>
@@ -184,11 +231,11 @@ function EscrowTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((escrow, index) => (
-                <TableRow key={index} className="border-b-black/30">
+              {data.map((escrow, id) => (
+                <TableRow key={id} className="border-b-black/30">
                   <TableCell className="p-3">{escrow.bookingId}</TableCell>
                   <TableCell className="p-3">{escrow.restaurant}</TableCell>
-                  <TableCell className="p-3">{escrow.amount}</TableCell>
+                  <TableCell className="p-3">{formatCurrency(Number(escrow.amount))}</TableCell>
                   <TableCell className="p-3">
                     {new Date(escrow.payoutDate).toLocaleDateString()}
                   </TableCell>
@@ -209,7 +256,7 @@ function EscrowTable() {
                       >
                         {escrow.status === "approved" ? (
                           <DropdownMenuItem
-                            onClick={() => handleAction("suspend", index)}
+                            onClick={() => handleAction("suspend", escrow._id)}
                             className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"
@@ -219,7 +266,7 @@ function EscrowTable() {
                         ) : escrow.status === "pending" ? (
                           <>
                             <DropdownMenuItem
-                              onClick={() => handleAction("approve", index)}
+                              onClick={() => handleAction("approve", escrow._id)}
                               className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"
@@ -227,7 +274,7 @@ function EscrowTable() {
                               Approve
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleAction("suspend", index)}
+                              onClick={() => handleAction("suspend", escrow._id)}
                               className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"
@@ -238,7 +285,7 @@ function EscrowTable() {
                         ) : (
                           escrow.status === "rejected" && (
                             <DropdownMenuItem
-                              onClick={() => handleAction("approve", index)}
+                              onClick={() => handleAction("approve", escrow._id)}
                               className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"

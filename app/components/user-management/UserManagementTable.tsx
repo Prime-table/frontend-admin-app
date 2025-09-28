@@ -88,6 +88,26 @@ function UserManagementTable() {
     paymentMethod: "",
     accountNumber: "",
   });
+
+  useEffect(() => {
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/prime-table-admin/users"); // adjust port/path
+      if (!res.ok) throw new Error("Failed to fetch");
+
+      const users: Users[] = await res.json();
+      setData(users);
+      setFilteredData(users);
+    } catch (error) {
+      console.error("Backend not reachable, using fallback data:", error);
+      setData(userData);       // fallback dummy data
+      setFilteredData(userData);
+    }
+  };
+
+  fetchUsers();
+}, []);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const validateForm = () => {
     const newErrors = {
@@ -154,59 +174,65 @@ function UserManagementTable() {
     }
   };
   const handleSubmitForm = async () => {
-    if (!validateForm()) {
-      toast.error("Please fill in all required fields.");
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+  if (!validateForm()) {
+    toast.error("Please fill in all required fields.");
+    return;
+  }
 
-      // Create new user object
-      const newUser: Users = {
+  setIsSubmitting(true);
+  try {
+    // 🔹 Make POST request to backend
+    const res = await fetch("http://localhost:5000/prime-table-admin/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
         fullName: addNewUserFormData.name,
         email: addNewUserFormData.email,
-        role: addNewUserFormData.role as "partner" | "customer" | "staff",
-        status: "pending" as "approved" | "pending" | "suspended",
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
-      };
+        role: addNewUserFormData.role,
+        status: "pending",
+      }),
+    });
 
-      // Add to userData array (in real app, this would be an API call)
-      userData.push(newUser);
-      setData([...userData]);
+    if (!res.ok) throw new Error("Failed to create user");
 
-      // Reset form
-      setAddNewUserFormData({
-        role: "partner",
-        address: "",
-        contact: "",
-        name: "",
-        phoneNumber: "",
-        email: "",
-        paymentMethod: "transfer",
-        accountNumber: "",
-      });
-      setErrors({
-        role: "",
-        address: "",
-        contact: "",
-        name: "",
-        phoneNumber: "",
-        email: "",
-        paymentMethod: "",
-        accountNumber: "",
-      });
-      toast.success("User added successfully!");
-      setOpenAddUserModal(false);
-    } catch (error) {
-      console.error("Error adding user:", error);
-      toast.error("Failed to add user.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    const newUser: Users = await res.json();
+
+    // 🔹 Update local state with backend response
+    setData((prev) => [...prev, newUser]);
+
+    // 🔹 Reset form after success
+    setAddNewUserFormData({
+      role: "partner",
+      address: "",
+      contact: "",
+      name: "",
+      phoneNumber: "",
+      email: "",
+      paymentMethod: "transfer",
+      accountNumber: "",
+    });
+    setErrors({
+      role: "",
+      address: "",
+      contact: "",
+      name: "",
+      phoneNumber: "",
+      email: "",
+      paymentMethod: "",
+      accountNumber: "",
+    });
+
+    toast.success("✅ User added successfully!");
+    setOpenAddUserModal(false);
+  } catch (error) {
+    console.error("Error adding user:", error);
+    toast.error("❌ Failed to add user.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+
   const handleCloseForm = () => {
     setAddNewUserFormData({
       role: "partner",
@@ -257,28 +283,41 @@ function UserManagementTable() {
     setDeleteConfirmOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (userToDelete) {
-      // Remove from userData array
-      const updatedUserData = userData.filter(
-        (user) => user.email !== userToDelete.email
-      );
-      // Update the userData array (in real app, this would be an API call)
-      userData.splice(0, userData.length, ...updatedUserData);
-      setData([...updatedUserData]);
+  const confirmDelete = async () => {
+  if (!userToDelete) return;
 
-      // Remove from selected users if it was selected
-      setSelectedUsers((prev) =>
-        prev.filter((email) => email !== userToDelete.email)
-      );
+  try {
+    // Simulate API call (replace with actual fetch/axios call)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    // Example real API:
+    await fetch(`http://localhost:5000/prime-table-admin/users/${userToDelete._id}`, {
+      method: "DELETE",
+    });
 
-      toast.success(
-        `${userToDelete.fullName} has been deleted from the system`
-      );
-      setDeleteConfirmOpen(false);
-      setUserToDelete(null);
-    }
-  };
+    // Remove from userData array
+    const updatedUserData = userData.filter(
+      (user) => user.email !== userToDelete.email
+    );
+
+    // Update the userData array
+    userData.splice(0, userData.length, ...updatedUserData);
+    setData([...updatedUserData]);
+
+    // Remove from selected users if it was selected
+    setSelectedUsers((prev) =>
+      prev.filter((email) => email !== userToDelete.email)
+    );
+
+    toast.success(`${userToDelete.fullName} has been deleted from the system`);
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    toast.error("Failed to delete user.");
+  } finally {
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
+  }
+};
+
 
   const cancelDelete = () => {
     setDeleteConfirmOpen(false);
@@ -291,26 +330,44 @@ function UserManagementTable() {
     }
   };
 
-  const confirmBulkDelete = () => {
-    if (selectedUsers.length > 0) {
-      // Remove selected users from userData array
-      const updatedUserData = userData.filter(
-        (user) => !selectedUsers.includes(user.email)
-      );
-      // Update the userData array (in real app, this would be an API call)
-      userData.splice(0, userData.length, ...updatedUserData);
-      setData([...updatedUserData]);
+  const confirmBulkDelete = async () => {
+  if (selectedUsers.length === 0) return;
 
-      // Clear selections
-      setSelectedUsers([]);
-      setSelectAll(false);
+  try {
+    // Simulate API call (replace with actual backend request)
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      toast.success(
-        `${selectedUsers.length} user(s) have been deleted from the system`
-      );
-      setBulkDeleteConfirmOpen(false);
-    }
-  };
+    // Example real API call (if backend supports bulk delete by email list)
+    await fetch("http://localhost:5000/prime-table-admin/users/bulk-delete", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emails: selectedUsers }),
+    });
+
+    // Remove selected users from userData array
+    const updatedUserData = userData.filter(
+      (user) => !selectedUsers.includes(user.email)
+    );
+
+    // Update local userData
+    userData.splice(0, userData.length, ...updatedUserData);
+    setData([...updatedUserData]);
+
+    // Clear selections
+    setSelectedUsers([]);
+    setSelectAll(false);
+
+    toast.success(
+      `${selectedUsers.length} user(s) have been deleted from the system`
+    );
+  } catch (error) {
+    console.error("Error bulk deleting users:", error);
+    toast.error("Failed to delete selected users.");
+  } finally {
+    setBulkDeleteConfirmOpen(false);
+  }
+};
+
 
   const cancelBulkDelete = () => {
     setBulkDeleteConfirmOpen(false);
@@ -385,6 +442,11 @@ function UserManagementTable() {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1500));
+       await fetch("http://localhost:5000/prime-table-admin/users/:id", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ emails: selectedUsers }),
+    });
 
       // Update user in userData array
       const userIndex = userData.findIndex((u) => u.email === userToEdit.email);
