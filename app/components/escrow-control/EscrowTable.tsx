@@ -19,36 +19,71 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import Image from "next/image";
+import { fetchEscrowData } from "@/app/services/escrow";
 
 function EscrowTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<escrowControl[]>(EscrowControlData);
+  // Start with dummy data, then fill with backend data
+  const [data, setData] = useState<escrowControl[] | null>([]);
   const [openFilter, setOpenFilter] = useState(false);
   const [filterState, setFilterState] = useState("all");
+  const [loading, setLoading] = useState(false);
 
   const handleChooseFilter = (filter: string) => {
     setFilterState(filter);
     setOpenFilter(false);
   };
 
-  const handleAction = (action: string, index: number) => {
-    if (action === "approve") {
-      const updatedData = [...data];
-      updatedData[index].status = "approved";
-      setData(updatedData);
-    } else if (action === "suspend") {
-      const updatedData = [...data];
-      updatedData[index].status = "rejected";
-      setData(updatedData);
+  const handleAction = async (action: string, id: string) => {
+    try {
+      let endpoint = "";
+      if (action === "approve") endpoint = `${id}/release`;
+      if (action === "suspend") endpoint = `${id}/cancel`;
+
+      const res = await fetch(
+        `http://localhost:5000/prime-table-admin/escrows/${endpoint}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+
+      if (!res.ok) throw new Error("Failed to update escrow");
+
+      const updatedEscrow = await res.json();
+
+      // update frontend state
+      setData((prev) =>
+        prev
+          ? prev.map((esc) => (esc._id === id ? updatedEscrow.escrow : esc))
+          : []
+      );
+    } catch (error) {
+      console.error("Error updating escrow:", error);
     }
   };
 
   useEffect(() => {
-    const filteredData = EscrowControlData.filter((escrow) => {
-      if (filterState === "all") return true;
-      return escrow.status === filterState;
-    });
-    setData(filteredData);
+    const fetchEscrows = async () => {
+      setLoading(true);
+      try {
+        const response = await fetchEscrowData();
+        if (response.length === 0) {
+          setData([]);
+        }
+        const filtered = response.filter((escrow: escrowControl) => {
+          if (filterState === "all") return true;
+          return escrow.status === filterState;
+        });
+        setData(filtered);
+      } catch (error) {
+        console.error("Error fetching escrows:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEscrows();
   }, [filterState]);
 
   useEffect(() => {
@@ -68,6 +103,19 @@ function EscrowTable() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openFilter]);
+
+  // helper
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 0,
+    }).format(amount);
+
+  // inside component
+  const totalBalance = data
+    ? data.reduce((sum, esc) => sum + Number(esc.amount), 0)
+    : 0;
 
   const statusClass = (status: string) => {
     switch (status) {
@@ -167,7 +215,9 @@ function EscrowTable() {
             />
           </div>
           <div className="flex flex-col items-center justify-center gap-1">
-            <span className="text-xl md:text-2xl font-bold">₦250,000</span>
+            <span className="text-xl md:text-2xl font-bold">
+              {formatCurrency(totalBalance)}
+            </span>
             <span className="">Total Escrow Balance</span>
           </div>
         </div>
@@ -184,74 +234,105 @@ function EscrowTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.map((escrow, index) => (
-                <TableRow key={index} className="border-b-black/30">
-                  <TableCell className="p-3">{escrow.bookingId}</TableCell>
-                  <TableCell className="p-3">{escrow.restaurant}</TableCell>
-                  <TableCell className="p-3">{escrow.amount}</TableCell>
-                  <TableCell className="p-3">
-                    {new Date(escrow.payoutDate).toLocaleDateString()}
+              {loading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 space-y-4 text-gray-500"
+                  >
+                    <div className="w-10 h-10 animate-spin rounded-full border-4 border-t-transparent border-red-500 mx-auto" />
+                    <span className="animate-pulse">
+                      Loading Escrow Data...
+                    </span>
                   </TableCell>
-                  <TableCell className={`p-3 ${statusClass(escrow.status)}`}>
-                    {escrow.status}
+                </TableRow>
+              ) : data && data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6">
+                    No escrow records found.
                   </TableCell>
-                  <TableCell className="p-3">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="border-0 focus:outline-none">
-                        <BsThreeDotsVertical
-                          className="text-2xl text-black 
+                </TableRow>
+              ) : (
+                data &&
+                data.map((escrow, id) => (
+                  <TableRow key={id} className="border-b-black/30">
+                    <TableCell className="p-3">{escrow.bookingId}</TableCell>
+                    <TableCell className="p-3">{escrow.restaurant}</TableCell>
+                    <TableCell className="p-3">
+                      {formatCurrency(Number(escrow.amount))}
+                    </TableCell>
+                    <TableCell className="p-3">
+                      {new Date(escrow.payoutDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className={`p-3 ${statusClass(escrow.status)}`}>
+                      {escrow.status}
+                    </TableCell>
+                    <TableCell className="p-3">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="border-0 focus:outline-none">
+                          <BsThreeDotsVertical
+                            className="text-2xl text-black 
                   cursor-pointer hover:text-black/80"
-                        />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        className="w-full bg-white
+                          />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          className="w-full bg-white
             flex flex-col items-center justify-center gap-2 border-none p-3"
-                      >
-                        {escrow.status === "approved" ? (
-                          <DropdownMenuItem
-                            onClick={() => handleAction("suspend", index)}
-                            className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
-                          >
-                            Reject
-                          </DropdownMenuItem>
-                        ) : escrow.status === "pending" ? (
-                          <>
+                        >
+                          {escrow.status === "approved" ? (
                             <DropdownMenuItem
-                              onClick={() => handleAction("approve", index)}
-                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
-                            >
-                              Approve
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleAction("suspend", index)}
+                              onClick={() =>
+                                handleAction("suspend", escrow._id)
+                              }
                               className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"
                             >
                               Reject
                             </DropdownMenuItem>
-                          </>
-                        ) : (
-                          escrow.status === "rejected" && (
-                            <DropdownMenuItem
-                              onClick={() => handleAction("approve", index)}
-                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                          ) : escrow.status === "pending" ? (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleAction("approve", escrow._id)
+                                }
+                                className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                 text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                 rounded-md flex items-center justify-center"
-                            >
-                              Approve
-                            </DropdownMenuItem>
-                          )
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                              >
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleAction("suspend", escrow._id)
+                                }
+                                className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                rounded-md flex items-center justify-center"
+                              >
+                                Reject
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            escrow.status === "rejected" && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleAction("approve", escrow._id)
+                                }
+                                className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                rounded-md flex items-center justify-center"
+                              >
+                                Approve
+                              </DropdownMenuItem>
+                            )
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

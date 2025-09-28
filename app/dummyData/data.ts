@@ -40,74 +40,83 @@ export const LatestPartners: latestPartners[] = [
 ]
 
 export const BookingLogs: bookingLog[] = [
-    {
-        bookingId: "B1235",
-        restaurant: "Big Taste",
-        email: "bigtaste@email.com",
-        date: "2025-07-01",
-        time: "9:45 pm",
-        amount: "₦50,000",
-        status: "approved"
-    },
-    {
-        bookingId: "B1236",
-        restaurant: "Spicy Delight",
-        email: "spicydelight@email.com",
-        date: "2025-07-02",
-        time: "8:30 pm",
-        amount: "₦30,000",
-        status: "pending"
-    },
-    {
-        bookingId: "B1237",
-        restaurant: "Sushi World",
-        email: "sushiworld@email.com",
-        date: "2025-07-03",
-        time: "7:15 pm",
-        amount: "₦40,000",
-        status: "cancelled"
-    },
-    {
-        bookingId: "B1238",
-        restaurant: "Pasta Paradise",
-        email: "pastaparadise@email.com",
-        date: "2025-07-04",
-        time: "6:00 pm",
-        amount: "₦35,000",
-        status: "approved"
-    }
+  {
+    _id: 1,
+    bookingId: "B1235",
+    restaurant: "Big Taste",
+    email: "bigtaste@email.com",
+    date: "2025-07-01",
+    time: "9:45 pm",
+    amount: 50000,
+    status: "approved",
+  },
+  {
+    _id: 2,
+    bookingId: "B1236",
+    restaurant: "Spicy Delight",
+    email: "spicydelight@email.com",
+    date: "2025-07-02",
+    time: "8:30 pm",
+    amount: 30000,
+    status: "pending",
+  },
+  {
+    _id: 3,
+    bookingId: "B1237",
+    restaurant: "Sushi World",
+    email: "sushiworld@email.com",
+    date: "2025-07-03",
+    time: "7:15 pm",
+    amount: 40000,
+    status: "cancelled",
+  },
+  {
+    _id: 4,
+    bookingId: "B1238",
+    restaurant: "Pasta Paradise",
+    email: "pastaparadise@email.com",
+    date: "2025-07-04",
+    time: "6:00 pm",
+    amount: 35000,
+    status: "approved",
+  },
 ];
 
 export const EscrowControlData: escrowControl[] = [
-    {
-        bookingId: "B1235",
-        restaurant: "Big Taste",
-        amount: "₦50,000",
-        payoutDate: "2025-07-10",
-        status: "approved"
-    },
-    {
-        bookingId: "B1236",
-        restaurant: "Spicy Delight",
-        amount: "₦30,000",
-        payoutDate: "2025-07-11",
-        status: "pending"
-    },
-    {
-        bookingId: "B1237",
-        restaurant: "Sushi World",
-        amount: "₦40,000",
-        payoutDate: "2025-07-12",
-        status: "rejected"
-    },
-    {
-        bookingId: "B1238",
-        restaurant: "Pasta Paradise",
-        amount: "₦35,000",
-        payoutDate: "2025-07-13",
-        status: "approved"
-    }   
-]
+  {
+    _id: "650f1e7f2a9a1b2c3d4e5f6a",
+    bookingId: "B1235",
+    restaurant: "Big Taste",
+    amount: "₦50,000",
+    payoutDate: "2025-07-10",
+    status: "approved"
+  },
+  {
+    _id: "650f1e7f2a9a1b2c3d4e5f6b",
+    bookingId: "B1236",
+    restaurant: "Spicy Delight",
+    amount: "₦30,000",
+    payoutDate: "2025-07-11",
+    status: "pending"
+  },
+  {
+    _id: "650f1e7f2a9a1b2c3d4e5f6c",
+    bookingId: "B1237",
+    restaurant: "Sushi World",
+    amount: "₦40,000",
+    payoutDate: "2025-07-12",
+    status: "rejected"
+  },
+  {
+    _id: "650f1e7f2a9a1b2c3d4e5f6d",
+    bookingId: "B1238",
+    restaurant: "Pasta Paradise",
+    amount: "₦35,000",
+    payoutDate: "2025-07-13",
+    status: "approved"
+  }
+];
+
 
 export const userData: Users[] = [
     {

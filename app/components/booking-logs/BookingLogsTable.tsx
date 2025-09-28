@@ -11,22 +11,24 @@ import { bookingLog } from "@/app/types/types";
 import { BookingLogs } from "@/app/dummyData/data";
 import { useState, useEffect, useRef } from "react";
 import { RiArrowDownSFill } from "react-icons/ri";
+import { fetchBookings } from "@/app/services/bookings";
 
 function BookingLogsTable() {
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);
   const dateRangeDropdownRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<bookingLog[]>(BookingLogs);
+  const [data, setData] = useState<bookingLog[] | null>([]);
   const [openStatusFilter, setOpenStatusFilter] = useState(false);
   const [openRestaurantFilter, setOpenRestaurantFilter] = useState(false);
   const [openDateRangeFilter, setOpenDateRangeFilter] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [restaurantFilter, setRestaurantFilter] = useState("all");
   const [dateRangeFilter, setDateRangeFilter] = useState("all");
+  const [loading, setLoading] = useState(false);
 
   // Get unique restaurants for filter
   const uniqueRestaurants = [
-    ...(BookingLogs ? new Set(BookingLogs.map((log) => log.restaurant)) : []),
+    ...(data ? new Set(data.map((log) => log.restaurant)) : []),
   ];
 
   const handleChooseStatusFilter = (filter: string) => {
@@ -75,26 +77,49 @@ function BookingLogsTable() {
   };
 
   useEffect(() => {
-    let filteredData = BookingLogs.filter((log) => {
-      // Status filter
-      const statusMatch = statusFilter === "all" || log.status === statusFilter;
-
-      // Restaurant filter
-      const restaurantMatch =
-        restaurantFilter === "all" || log.restaurant === restaurantFilter;
-
-      // Date range filter
-      let dateMatch = true;
-      if (dateRangeFilter !== "all") {
-        const dateRange = getDateRangeFromFilter(dateRangeFilter);
-        if (dateRange) {
-          const logDate = new Date(log.date);
-          dateMatch = logDate >= dateRange.from && logDate <= dateRange.to;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const bookings = await fetchBookings();
+        if (bookings.length > 0) {
+          setData(bookings);
+        } else {
+          setData([]);
         }
+      } catch (error) {
+        console.error("Error fetching booking logs:", error);
+      } finally {
+        setLoading(false);
       }
+    };
 
-      return statusMatch && restaurantMatch && dateMatch;
-    });
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    let filteredData =
+      data &&
+      data.filter((log) => {
+        // Status filter
+        const statusMatch =
+          statusFilter === "all" || log.status === statusFilter;
+
+        // Restaurant filter
+        const restaurantMatch =
+          restaurantFilter === "all" || log.restaurant === restaurantFilter;
+
+        // Date range filter
+        let dateMatch = true;
+        if (dateRangeFilter !== "all") {
+          const dateRange = getDateRangeFromFilter(dateRangeFilter);
+          if (dateRange) {
+            const logDate = new Date(log.date);
+            dateMatch = logDate >= dateRange.from && logDate <= dateRange.to;
+          }
+        }
+
+        return statusMatch && restaurantMatch && dateMatch;
+      });
 
     setData(filteredData);
   }, [statusFilter, restaurantFilter, dateRangeFilter]);
@@ -155,6 +180,14 @@ function BookingLogsTable() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openDateRangeFilter]);
+
+  const formatCurrency = (value: number, currency: string = "NGN") => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
 
   const statusClass = (status: string) => {
     switch (status) {
@@ -382,7 +415,17 @@ function BookingLogsTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.length === 0 ? (
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={8}
+                  className="text-center py-8 space-y-4 text-gray-500"
+                >
+                  <div className="w-10 h-10 animate-spin rounded-full border-4 border-t-transparent border-red-500 mx-auto" />
+                  <span className="animate-pulse">Loading booking logs...</span>
+                </TableCell>
+              </TableRow>
+            ) : data && data.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={8}
@@ -392,6 +435,7 @@ function BookingLogsTable() {
                 </TableCell>
               </TableRow>
             ) : (
+              data &&
               data.map((log, index) => (
                 <TableRow key={index} className="border-b-black/30">
                   <TableCell className="p-3 font-medium">
@@ -404,7 +448,7 @@ function BookingLogsTable() {
                   </TableCell>
                   <TableCell className="p-3">{log.time}</TableCell>
                   <TableCell className="p-3 font-medium">
-                    {log.amount}
+                    {formatCurrency(log.amount)}
                   </TableCell>
                   <TableCell className={`p-3 ${statusClass(log.status)}`}>
                     {log.status}

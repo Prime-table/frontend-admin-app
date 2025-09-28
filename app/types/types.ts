@@ -6,16 +6,18 @@ export type latestPartners ={
 }
 
 export type bookingLog = {
+    _id: number;
     bookingId: string;
     restaurant: string;
     email: string;
     date: string;
     time: string;
-    amount: string
+    amount: number
     status: "approved" | "pending" | "cancelled";
 }
 
 export type escrowControl = {
+    _id: string,
     bookingId: string;
     restaurant: string;
     amount: string;
