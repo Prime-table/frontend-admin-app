@@ -26,12 +26,19 @@ export type escrowControl = {
 }
 
 export type Users = {
+    _id: string;
     fullName: string;
     email: string;
     role: "partner" | "customer" | "staff";
     status: "approved" | "pending" | "suspended";
     createdAt: string;
     updatedAt: string;
+}
+export type addUserData = {
+  fullName: string;
+  email: string;
+  role: string;
+  status: "approved" | "pending" | "suspended";
 }
 
 export type Reviews = {
@@ -43,4 +50,15 @@ export type Reviews = {
     status: "approved" | "removed" | "flagged";
     createdAt: string;
     updatedAt: string;
+}
+
+// auth types
+export type LoginFormData = {
+    email: string;
+    password: string;
+}
+export type adminLoginResponse = {
+    _id: string;
+    email: string;
+    token: string;
 }
