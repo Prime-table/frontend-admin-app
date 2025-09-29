@@ -22,7 +22,7 @@ import PartnerPreviewModal from "./PartnerPreviewModal";
 
 function PartnersTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<latestPartners[]>(LatestPartners);
+  const [data, setData] = useState<latestPartners[]>([]);
   const [openFilter, setOpenFilter] = useState(false);
   const [filterState, setFilterState] = useState("all");
   const [selectedPartner, setSelectedPartner] = useState<latestPartners | null>(
@@ -65,7 +65,7 @@ function PartnersTable() {
       updatedData[index].status = "suspended";
     }
     setData(updatedData);
-    setSelectedPartner(updatedData[index]); // Update selected partner with new status
+    setSelectedPartner(updatedData[index]);
   };
 
   const closeModal = () => {
@@ -73,13 +73,30 @@ function PartnersTable() {
     setSelectedPartner(null);
   };
 
+  // 🔹 Fetch partners from backend with fallback
   useEffect(() => {
-    const filteredData = LatestPartners.filter((partner) => {
-      if (filterState === "all") return true;
-      return partner.status === filterState;
-    });
-    setData(filteredData);
-  }, [filterState]);
+    const fetchPartners = async () => {
+      try {
+        const res = await fetch("http://localhost:5000/prime-table-admin/latest-partners", {
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("Failed to fetch partners");
+        const result = await res.json();
+        setData(result);
+      } catch (error) {
+        console.error("API failed, using fallback data:", error);
+        setData(LatestPartners); // fallback
+      }
+    };
+
+    fetchPartners();
+  }, []);
+
+  // 🔹 Apply filter on data
+  const filteredData =
+    filterState === "all"
+      ? data
+      : data.filter((partner) => partner.status === filterState);
 
   useEffect(() => {
     if (!openFilter) return;
@@ -94,9 +111,7 @@ function PartnersTable() {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [openFilter]);
 
   const statusClass = (status: string) => {
@@ -122,62 +137,35 @@ function PartnersTable() {
           <div
             ref={dropdownRef}
             className="w-[200px] md:w-[250px] relative border border-black/30 hover:border-red-primary/50 
-            duration-300 ease-in-out rounded-sm flex items-center justify-center 
-            cursor-pointer"
+            duration-300 ease-in-out rounded-sm flex items-center justify-center cursor-pointer"
           >
-            {/* trigger */}
             <div
               className="w-full flex justify-center gap-8 capitalize py-2 px-4 md:py-3 md:px-6"
               onClick={() => setOpenFilter(!openFilter)}
             >
               <span className="flex items-center text-sm md:text-base whitespace-nowrap">
                 Status: {filterState}
-              </span>{" "}
-              <span>
-                <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
               </span>
+              <RiArrowDownSFill className="text-2xl md:text-4xl text-black/80" />
             </div>
-            {/* content */}
             <div
-              className={`w-full bg-white absolute top-[110%]
-            flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
-              openFilter
-                ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto"
-                : "max-h-0 opacity-0 z-[-1] pointer-events-none"
-            }`}
+              className={`w-full bg-white absolute top-[110%] flex flex-col items-center justify-center gap-2 py-4 px-3 duration-300 ease-in-out ${
+                openFilter
+                  ? "max-h-[175px] opacity-100 z-[10] pointer-events-auto"
+                  : "max-h-0 opacity-0 z-[-1] pointer-events-none"
+              }`}
             >
-              <span
-                onClick={() => handleChooseFilter("all")}
-                className="text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md text-center"
-              >
-                All
-              </span>
-              <span
-                onClick={() => handleChooseFilter("approved")}
-                className="text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md text-center"
-              >
-                Approved
-              </span>
-              <span
-                onClick={() => handleChooseFilter("pending")}
-                className="text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md text-center"
-              >
-                Pending
-              </span>
-              <span
-                onClick={() => handleChooseFilter("suspended")}
-                className="text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md text-center"
-              >
-                Suspended
-              </span>
+              {["all", "approved", "pending", "suspended"].map((status) => (
+                <span
+                  key={status}
+                  onClick={() => handleChooseFilter(status)}
+                  className="text-sm font-semibold w-full border border-red-primary 
+                  text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                  rounded-md text-center capitalize"
+                >
+                  {status}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -194,7 +182,7 @@ function PartnersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((partner, index) => (
+            {filteredData.map((partner, index) => (
               <TableRow key={index} className="border-b-black/30">
                 <TableCell className="p-3">{partner.fullName}</TableCell>
                 <TableCell className="p-3">{partner.email}</TableCell>
@@ -207,20 +195,14 @@ function PartnersTable() {
                 <TableCell className="p-3">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="border-0 focus:outline-none">
-                      <BsThreeDotsVertical
-                        className="text-2xl text-black 
-                  cursor-pointer hover:text-black/80"
-                      />
+                      <BsThreeDotsVertical className="text-2xl text-black cursor-pointer hover:text-black/80" />
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-full bg-white
-            flex flex-col items-center justify-center gap-2 border-none p-3"
-                    >
+                    <DropdownMenuContent className="w-full bg-white flex flex-col items-center justify-center gap-2 border-none p-3">
                       <DropdownMenuItem
                         onClick={() => handleAction("preview", index)}
                         className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
+                        text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                        rounded-md flex items-center justify-center"
                       >
                         Preview
                       </DropdownMenuItem>
@@ -228,8 +210,8 @@ function PartnersTable() {
                         <DropdownMenuItem
                           onClick={() => handleAction("suspend", index)}
                           className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
+                          text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                          rounded-md flex items-center justify-center"
                         >
                           Suspend
                         </DropdownMenuItem>
@@ -238,16 +220,16 @@ function PartnersTable() {
                           <DropdownMenuItem
                             onClick={() => handleAction("approve", index)}
                             className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
+                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                            rounded-md flex items-center justify-center"
                           >
                             Approve
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleAction("suspend", index)}
                             className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
+                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                            rounded-md flex items-center justify-center"
                           >
                             Suspend
                           </DropdownMenuItem>
@@ -257,8 +239,8 @@ function PartnersTable() {
                           <DropdownMenuItem
                             onClick={() => handleAction("approve", index)}
                             className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                rounded-md flex items-center justify-center"
+                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                            rounded-md flex items-center justify-center"
                           >
                             Approve
                           </DropdownMenuItem>
