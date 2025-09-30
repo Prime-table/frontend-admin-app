@@ -278,7 +278,7 @@ function UserManagementTable() {
     if (!userToDelete) return;
 
     try {
-      await deleteUser(userToDelete._id);
+      await deleteUser(userToDelete._id ?? "");
 
       await fetchUsersAsync();
       // Remove from userData array

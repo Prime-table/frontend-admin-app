@@ -26,7 +26,7 @@ export type escrowControl = {
 }
 
 export type Users = {
-    _id: string;
+    _id?: string;
     fullName: string;
     email: string;
     role: "partner" | "customer" | "staff";

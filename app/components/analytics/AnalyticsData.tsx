@@ -25,6 +25,9 @@ import {
 } from "@/app/dummyData/data";
 import { bookingLog, escrowControl } from "@/app/types/types";
 import toast from "react-hot-toast";
+
+const API_BASE_URL = "http://localhost:5000/prime-table-admin";
+
 function AnalyticsandExportData() {
   const [currentTab, setCurrentTab] = useState<"analytics" | "export">(
     "analytics"
@@ -33,7 +36,7 @@ function AnalyticsandExportData() {
   // Filter states for export tab
   const [openDateRangeFilter, setOpenDateRangeFilter] = useState(false);
   const [openRestaurantFilter, setOpenRestaurantFilter] = useState(false);
-  const [openReportTypeFilter, setOpenReportTypeFilter] = useState(false);
+  const [openReportTypeFilter, setOpenReportTypeFilter] = useState(false); 
   const [openFormatFilter, setOpenFormatFilter] = useState(false);
 
   const [dateRangeFilter, setDateRangeFilter] = useState("all");
@@ -98,19 +101,39 @@ function AnalyticsandExportData() {
   };
 
   const handleGenerateReport = async () => {
-    setIsGenerating(true);
-    setIsReportGenerated(false);
+  setIsGenerating(true);
+  setIsReportGenerated(false);
 
-    // Filter data based on selected filters
+  try {
+    let endpoint = "";
+    if (reportTypeFilter === "bookings") {
+      endpoint = `${API_BASE_URL}/bookings`;
+    } else if (reportTypeFilter === "escrow") {
+      endpoint = 'http://localhost:5000/prime-table-admin/escrows';
+    } else {
+      throw new Error("Invalid report type");
+    }
+
+    // ✅ Use GET instead of POST since preview endpoints are GET
+    const res = await fetch(endpoint, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!res.ok) throw new Error("API failed");
+    const data = await res.json();
+
+    setPreviewData(data);
+    toast.success("Report generated from API!");
+  } catch (err) {
+    console.warn("API failed, falling back to dummy data:", err);
+
+    // 🔹 fallback to dummy data
     let filteredData: bookingLog[] | escrowControl[] = [];
-
     if (reportTypeFilter === "bookings") {
       filteredData = BookingLogs.filter((log) => {
-        // Restaurant filter
         const restaurantMatch =
           restaurantFilter === "all" || log.restaurant === restaurantFilter;
-
-        // Date range filter
         let dateMatch = true;
         if (dateRangeFilter !== "all") {
           const dateRange = getDateRangeFromFilter(dateRangeFilter);
@@ -119,16 +142,12 @@ function AnalyticsandExportData() {
             dateMatch = logDate >= dateRange.from && logDate <= dateRange.to;
           }
         }
-
         return restaurantMatch && dateMatch;
       });
-    } else if (reportTypeFilter === "escrow-data") {
+    } else if (reportTypeFilter === "escrow") {
       filteredData = EscrowControlData.filter((escrow) => {
-        // Restaurant filter
         const restaurantMatch =
           restaurantFilter === "all" || escrow.restaurant === restaurantFilter;
-
-        // Date range filter
         let dateMatch = true;
         if (dateRangeFilter !== "all") {
           const dateRange = getDateRangeFromFilter(dateRangeFilter);
@@ -138,39 +157,88 @@ function AnalyticsandExportData() {
               payoutDate >= dateRange.from && payoutDate <= dateRange.to;
           }
         }
-
         return restaurantMatch && dateMatch;
       });
     }
 
-    // Simulate report generation
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     setPreviewData(filteredData);
-    setIsGenerating(false);
-    setIsReportGenerated(true);
-    toast.success(
-      `${formatText(reportTypeFilter)} Report generated successfully!`
-    );
-  };
+    toast.success("Report generated (dummy data fallback)");
+  }
+
+  setIsGenerating(false);
+  setIsReportGenerated(true);
+
+  toast.success(`${formatText(reportTypeFilter)} Report generated successfully!`);
+};
 
   const handleDownloadReport = async () => {
-    if (!isReportGenerated) {
-      toast.error("generate a report");
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    toast.success("download complete");
-  };
+  if (!isReportGenerated) return toast.error("Generate a report first");
 
-  const handleSendReportEmail = async () => {
-    if (!isReportGenerated) {
-      toast.error("generate a report");
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    toast.success("email sent");
-  };
+  try {
+    const res = await fetch('http://localhost:5000/prime-table-admin/reports/export', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: reportTypeFilter,       // "bookings" | "escrow"
+        format: formatFilter,         // "csv" | "xlsx" | "pdf"
+        filters: {
+          restaurant: restaurantFilter,
+          dateRange: dateRangeFilter,
+        },
+      }),
+    });
+
+    if (!res.ok) throw new Error("Download failed");
+
+    // ⬇️ Force browser download
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${reportTypeFilter}-report.${formatFilter}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    // ✅ Show success toast
+    toast.success(`Report (${formatFilter.toUpperCase()}) downloaded successfully!`);
+  } catch (err) {
+    console.warn("Download fallback:", err);
+    toast.error("Failed to download report");
+  }
+};
+
+
+ const handleSendReportEmail = async () => {
+  if (!isReportGenerated) {
+    toast.error("Generate a report first");
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5000/prime-table-admin/reports/email', {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: reportTypeFilter,       // "bookings" | "escrow"
+        format: formatFilter,         // "csv" | "xlsx" | "pdf"
+        filters: {
+          restaurant: restaurantFilter,
+          dateRange: dateRangeFilter,
+        },
+        email: "manager@primetable.com", // 🔹 Or capture from UI input
+      }),
+    });
+
+    if (!res.ok) throw new Error("Email sending failed");
+    toast.success("Report sent to email!");
+  } catch (err) {
+    console.warn("Email fallback:", err);
+    toast.error("Failed to send report email");
+  }
+};
+
   // Refs for dropdowns
   const dateRangeDropdownRef = useRef<HTMLDivElement>(null);
   const restaurantDropdownRef = useRef<HTMLDivElement>(null);

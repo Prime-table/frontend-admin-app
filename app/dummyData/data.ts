@@ -3,7 +3,7 @@ import { latestPartners, bookingLog, escrowControl, Users, Reviews } from "../ty
 export const LatestPartners: latestPartners[] = [
     {
         fullName: "John Doe",
-        email: "john@example.com",
+        email: "john@example.com", 
         regDate: "2025-01-01",
         status: "approved"
     },
@@ -33,7 +33,7 @@ export const LatestPartners: latestPartners[] = [
     },
     {
         fullName: "David Wilson",
-        email: "david@example.com",
+        email: "david@example.com", 
         regDate: "2025-06-01",
         status: "suspended"
     }
