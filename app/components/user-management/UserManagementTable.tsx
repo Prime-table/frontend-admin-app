@@ -417,11 +417,11 @@ function UserManagementTable() {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      await fetch("http://localhost:5000/prime-table-admin/users/:id", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ emails: selectedUsers }),
-      });
+      // await fetch("http://localhost:5000/prime-table-admin/users/:id", {
+      //   method: "PUT",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify({ emails: selectedUsers }),
+      // });
 
       // const userIndex = userData.findIndex((u) => u.email === userToEdit.email);
       // if (userIndex !== -1) {

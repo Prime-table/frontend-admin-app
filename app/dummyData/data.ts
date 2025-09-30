@@ -120,6 +120,7 @@ export const EscrowControlData: escrowControl[] = [
 
 export const userData: Users[] = [
     {
+        _id: "user-1",
         fullName: "John Doe",
         email: "john@example.com",
         role: "partner",
@@ -128,6 +129,7 @@ export const userData: Users[] = [
         updatedAt: "2025-01-01"
     },
     {
+        _id: "user-2",
         fullName: "Jane Smith",
         email: "jane@example.com",
         role: "customer",
@@ -136,6 +138,7 @@ export const userData: Users[] = [
         updatedAt: "2025-02-01"
     },
     {
+        _id: "user-3",
         fullName: "Bob Johnson",
         email: "bob@example.com",
         role: "staff",
@@ -144,6 +147,7 @@ export const userData: Users[] = [
         updatedAt: "2025-03-01"
     },
     {
+        _id: "user-4",
         fullName: "Alice Williams",
         email: "alice@example.com",
         role: "partner",
@@ -152,6 +156,7 @@ export const userData: Users[] = [
         updatedAt: "2025-04-01"
     },
     {
+        _id: "user-5",
         fullName: "Charlie Brown",
         email: "charlie@example.com",
         role: "customer",
@@ -160,6 +165,7 @@ export const userData: Users[] = [
         updatedAt: "2025-05-01"
     },
     {
+        _id: "user-6",
         fullName: "David Wilson",
         email: "david@example.com",
         role: "staff",
