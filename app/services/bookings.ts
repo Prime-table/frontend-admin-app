@@ -1,12 +1,12 @@
 import axios from "axios";
 import { getCookie } from "cookies-next/client";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/prime-table-admin";
+const BASE_URL = "https://backend-partner-app.onrender.com/bookings/allbookings";
 const token = getCookie("adminToken");
 
 export const fetchBookings = async () => {
   try {
-    const response = await axios.get(`${BASE_URL}/bookings`, {
+    const response = await axios.get(`${BASE_URL}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

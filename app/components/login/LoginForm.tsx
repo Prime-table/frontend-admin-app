@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema, LoginFormData } from "@/app/schemas/schema";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import Link from "next/link";
@@ -13,7 +13,7 @@ import { setCookie } from "cookies-next/client";
 function LoginForm() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const searchParams = useSearchParams();
   const {
     register,
     handleSubmit,
@@ -32,7 +32,9 @@ function LoginForm() {
       });
       localStorage.setItem("adminEmail", response.email);
       toast.success("Login successful!");
-      router.push("/dashboard");
+
+      const callBackUrl = searchParams.get("callBackUrl") || "/dashboard";
+      window.location.href = callBackUrl;
     } catch (error: any) {
       toast.error(error.message || "Login failed.");
       console.error("Login error:", error);

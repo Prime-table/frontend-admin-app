@@ -1,6 +1,6 @@
 import Image from "next/image";
 import LoginForm from "@/app/components/login/LoginForm";
-
+import { Suspense } from "react";
 function Login() {
   return (
     <section className="w-screen h-screen absolute inset-0 bg-white text-black z-[500] flex flex-col items-center justify-center">
@@ -14,7 +14,9 @@ function Login() {
       />
 
       {/* form */}
-      <LoginForm />
+      <Suspense fallback={<div>Loading...</div>}>
+        <LoginForm />
+      </Suspense>
     </section>
   );
 }
