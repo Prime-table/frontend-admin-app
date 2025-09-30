@@ -6,7 +6,7 @@ export type latestPartners ={
 }
 
 export type bookingLog = {
-    _id?: number;
+    _id: number;
     bookingId: string;
     restaurant: string;
     email: string;
@@ -42,7 +42,7 @@ export type addUserData = {
 }
 
 export type Reviews = {
-    id?: string;
+    id: string;
     userName: string;
     restaurant: string;
     rating: number;
@@ -58,7 +58,7 @@ export type LoginFormData = {
     password: string;
 }
 export type adminLoginResponse = {
-    _id?: string;
+    _id: string;
     email: string;
     token: string;
 }
