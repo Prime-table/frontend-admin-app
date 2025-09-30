@@ -17,7 +17,7 @@ export type bookingLog = {
 }
 
 export type escrowControl = {
-    _id?: string,
+    _id: string,
     bookingId: string;
     restaurant: string;
     amount: string;
