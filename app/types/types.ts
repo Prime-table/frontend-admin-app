@@ -6,7 +6,7 @@ export type latestPartners ={
 }
 
 export type bookingLog = {
-    _id: number;
+    _id?: number;
     bookingId: string;
     restaurant: string;
     email: string;
@@ -17,7 +17,7 @@ export type bookingLog = {
 }
 
 export type escrowControl = {
-    _id: string,
+    _id?: string,
     bookingId: string;
     restaurant: string;
     amount: string;
@@ -26,7 +26,7 @@ export type escrowControl = {
 }
 
 export type Users = {
-    _id: string;
+    _id?: string;
     fullName: string;
     email: string;
     role: "partner" | "customer" | "staff";
@@ -42,7 +42,7 @@ export type addUserData = {
 }
 
 export type Reviews = {
-    id: string;
+    id?: string;
     userName: string;
     restaurant: string;
     rating: number;
@@ -58,7 +58,7 @@ export type LoginFormData = {
     password: string;
 }
 export type adminLoginResponse = {
-    _id: string;
+    _id?: string;
     email: string;
     token: string;
 }
