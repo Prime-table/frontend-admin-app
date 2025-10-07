@@ -7,8 +7,11 @@ import {
   TableBody,
   TableRow,
 } from "@/components/ui/table";
-import { latestPartners } from "@/app/types/types";
-import { LatestPartners } from "@/app/dummyData/data";
+import {
+  latestPartnersData,
+  fetchAllPartnersResponse,
+} from "@/app/types/types";
+// import { LatestPartners } from "@/app/dummyData/data";
 import { useState, useEffect, useRef } from "react";
 import { RiArrowDownSFill } from "react-icons/ri";
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -18,10 +21,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { fetchAllPartners } from "@/app/services/partners";
 
 function LatestPartnersTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<latestPartners[]>(LatestPartners);
+  const [data, setData] = useState<latestPartnersData[]>([]);
   const [openFilter, setOpenFilter] = useState(false);
   const [filterState, setFilterState] = useState("all");
 
@@ -42,12 +46,29 @@ function LatestPartnersTable() {
     }
   };
 
+  const handleGetParters = async () => {
+    try {
+      const response: fetchAllPartnersResponse = await fetchAllPartners();
+      if (response.success) {
+        setData(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching partners:", error);
+    }
+  };
+
   useEffect(() => {
-    const filteredData = LatestPartners.filter((partner) => {
-      if (filterState === "all") return true;
-      return partner.status === filterState;
-    });
-    setData(filteredData);
+    handleGetParters();
+  }, []);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      const filteredData = data.filter((partner) => {
+        if (filterState === "all") return true;
+        return partner.status === filterState;
+      });
+      setData(filteredData);
+    }
   }, [filterState]);
 
   useEffect(() => {
@@ -155,24 +176,24 @@ function LatestPartnersTable() {
         <Table>
           <TableHeader>
             <TableRow className="border-b-black/30 hover:bg-transparent">
-              <TableHead className="font-medium pb-3">Name</TableHead>
+              {/* <TableHead className="font-medium pb-3">Name</TableHead> */}
               <TableHead className="font-medium pb-3">Email</TableHead>
               <TableHead className="font-medium pb-3">Reg.Date</TableHead>
-              <TableHead className="font-medium pb-3">Status</TableHead>
+              {/* <TableHead className="font-medium pb-3">Status</TableHead> */}
               <TableHead className="font-medium pb-3">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((partner, index) => (
               <TableRow key={index} className="border-b-black/30">
-                <TableCell className="p-3">{partner.fullName}</TableCell>
+                {/* <TableCell className="p-3">{partner.fullName}</TableCell> */}
                 <TableCell className="p-3">{partner.email}</TableCell>
                 <TableCell className="p-3">
-                  {new Date(partner.regDate).toLocaleDateString()}
+                  {new Date(partner.createdAt).toLocaleDateString()}
                 </TableCell>
-                <TableCell className={`p-3 ${statusClass(partner.status)}`}>
+                {/* <TableCell className={`p-3 ${statusClass(partner.status)}`}>
                   {partner.status}
-                </TableCell>
+                </TableCell> */}
                 <TableCell className="p-3">
                   <DropdownMenu>
                     <DropdownMenuTrigger className="border-0 focus:outline-none">

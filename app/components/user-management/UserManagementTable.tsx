@@ -34,12 +34,13 @@ import { X, Trash2 } from "lucide-react";
 import { RiArrowDownSFill } from "react-icons/ri";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import toast from "react-hot-toast";
-import { userData } from "@/app/dummyData/data";
+// import { userData } from "@/app/dummyData/data";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Users } from "@/app/types/types";
 import {
   fetchUsers,
   addUser,
+  editUser,
   deleteUser,
   bulkUserDelete,
 } from "@/app/services/users";
@@ -416,7 +417,10 @@ function UserManagementTable() {
 
     setIsSubmitting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await editUser(userToEdit._id ?? "", {
+        email: editUserFormData.email,
+      });
+      // await new Promise((resolve) => setTimeout(resolve, 1500));
       // await fetch("http://localhost:5000/prime-table-admin/users/:id", {
       //   method: "PUT",
       //   headers: { "Content-Type": "application/json" },

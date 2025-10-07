@@ -1,10 +1,10 @@
 "use client";
-import { latestPartners } from "@/app/types/types";
+import { latestPartnersData } from "@/app/types/types";
 import { useEffect } from "react";
 import { X } from "lucide-react";
 
 interface PartnerPreviewModalProps {
-  partner: latestPartners | null;
+  partner: latestPartnersData | null;
   isOpen: boolean;
   onClose: () => void;
   onAction: (action: string) => void;
@@ -71,12 +71,12 @@ function PartnerPreviewModal({
 
         {/* Partner Info */}
         <div className="space-y-4 mb-6">
-          <div>
+          {/* <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
               Full Name
             </label>
             <p className="text-gray-900 font-medium">{partner.fullName}</p>
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
@@ -87,10 +87,30 @@ function PartnerPreviewModal({
 
           <div>
             <label className="block text-sm font-medium text-gray-600 mb-1">
+              Partner ID
+            </label>
+            <p className="text-gray-900">{partner.partnerId}</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
               Registration Date
             </label>
             <p className="text-gray-900">
-              {new Date(partner.regDate).toLocaleDateString("en-US", {
+              {new Date(partner.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Last Updated
+            </label>
+            <p className="text-gray-900">
+              {new Date(partner.updatedAt).toLocaleDateString("en-US", {
                 year: "numeric",
                 month: "long",
                 day: "numeric",
@@ -105,10 +125,10 @@ function PartnerPreviewModal({
             <span
               className={`
               inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
-              border capitalize ${statusClass(partner.status)}
+              border capitalize ${statusClass(partner.status || "pending")}
             `}
             >
-              {partner.status}
+              {partner.status || "pending"}
             </span>
           </div>
         </div>

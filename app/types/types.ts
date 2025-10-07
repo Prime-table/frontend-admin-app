@@ -5,6 +5,23 @@ export type latestPartners ={
     status: "approved" | "pending" | "suspended";
 }
 
+export type latestPartnersData = {
+    _id: string;
+    email: string;
+    password: string;
+    status?: string;
+    partnerId: string;
+    createdAt: string;
+    updatedAt: string;
+    _v: number;
+}
+
+export interface fetchAllPartnersResponse {
+    success: boolean;
+    count: number
+    data: latestPartnersData[];
+}
+
 export type bookingLog = {
     _id: number;
     bookingId: string;

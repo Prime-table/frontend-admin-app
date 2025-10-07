@@ -3,7 +3,6 @@ import { getCookie } from "cookies-next/client";
 import { addUserData } from "../types/types";
 
 const token = getCookie("adminToken");
-
 const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000/prime-table-admin";
 
 export const fetchUsers = async () => {
@@ -30,6 +29,20 @@ export const addUser = async (userData:addUserData)=>{
         return response.data;
     } catch (error) {
         console.error("Error adding user:", error);
+        throw error;
+    }
+}
+
+export const editUser = async (id: string, payload: { email: string}) =>{
+    try {
+        const response = await axios.put(`${baseUrl}/users/${id}`, payload, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error editing user:", error);
         throw error;
     }
 }

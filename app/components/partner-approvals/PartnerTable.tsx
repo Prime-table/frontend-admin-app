@@ -7,8 +7,12 @@ import {
   TableBody,
   TableRow,
 } from "@/components/ui/table";
-import { latestPartners } from "@/app/types/types";
-import { LatestPartners } from "@/app/dummyData/data";
+import {
+  latestPartnersData,
+  fetchAllPartnersResponse,
+} from "@/app/types/types";
+import { fetchAllPartners } from "@/app/services/partners";
+// import { LatestPartners } from "@/app/dummyData/data";
 import { useState, useEffect, useRef } from "react";
 import { RiArrowDownSFill } from "react-icons/ri";
 import { BsThreeDotsVertical } from "react-icons/bs";
@@ -22,12 +26,12 @@ import PartnerPreviewModal from "./PartnerPreviewModal";
 
 function PartnersTable() {
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [data, setData] = useState<latestPartners[]>([]);
+  const [data, setData] = useState<latestPartnersData[]>([]);
+  const [loading, setLoading] = useState(true);
   const [openFilter, setOpenFilter] = useState(false);
   const [filterState, setFilterState] = useState("all");
-  const [selectedPartner, setSelectedPartner] = useState<latestPartners | null>(
-    null
-  );
+  const [selectedPartner, setSelectedPartner] =
+    useState<latestPartnersData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleChooseFilter = (filter: string) => {
@@ -37,16 +41,26 @@ function PartnersTable() {
 
   const handleAction = (action: string, index: number) => {
     if (action === "preview") {
-      setSelectedPartner(data[index]);
+      setSelectedPartner(filteredData[index]);
       setIsModalOpen(true);
     } else if (action === "approve") {
       const updatedData = [...data];
-      updatedData[index].status = "approved";
-      setData(updatedData);
+      const originalIndex = data.findIndex(
+        (partner) => partner._id === filteredData[index]._id
+      );
+      if (originalIndex !== -1) {
+        updatedData[originalIndex].status = "approved";
+        setData(updatedData);
+      }
     } else if (action === "suspend") {
       const updatedData = [...data];
-      updatedData[index].status = "suspended";
-      setData(updatedData);
+      const originalIndex = data.findIndex(
+        (partner) => partner._id === filteredData[index]._id
+      );
+      if (originalIndex !== -1) {
+        updatedData[originalIndex].status = "suspended";
+        setData(updatedData);
+      }
     }
   };
 
@@ -54,7 +68,7 @@ function PartnersTable() {
     if (!selectedPartner) return;
 
     const index = data.findIndex(
-      (partner) => partner.email === selectedPartner.email
+      (partner) => partner._id === selectedPartner._id
     );
     if (index === -1) return;
 
@@ -73,26 +87,25 @@ function PartnersTable() {
     setSelectedPartner(null);
   };
 
-  // 🔹 Fetch partners from backend with fallback
   useEffect(() => {
     const fetchPartners = async () => {
+      setLoading(true);
       try {
-        const res = await fetch("http://localhost:5000/prime-table-admin/latest-partners", {
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch partners");
-        const result = await res.json();
-        setData(result);
+        const response: fetchAllPartnersResponse = await fetchAllPartners();
+        if (response.success) {
+          setData(response.data);
+        }
       } catch (error) {
-        console.error("API failed, using fallback data:", error);
-        setData(LatestPartners); // fallback
+        console.error("Error fetching partners:", error);
+        setData([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPartners();
   }, []);
 
-  // 🔹 Apply filter on data
   const filteredData =
     filterState === "all"
       ? data
@@ -126,6 +139,24 @@ function PartnersTable() {
         return "text-gray-500";
     }
   };
+
+  if (loading) {
+    return (
+      <div className="w-full flex flex-col gap-5">
+        <header className="flex flex-col gap-5">
+          <h2 className="text-2xl md:text-3xl font-medium">
+            Partner Approvals
+          </h2>
+        </header>
+        <div className="border border-black/30 rounded-sm p-8">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-primary"></div>
+            <span className="ml-3 text-gray-600">Loading partners...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col gap-5">
@@ -174,83 +205,100 @@ function PartnersTable() {
         <Table>
           <TableHeader>
             <TableRow className="border-b-black/30 hover:bg-transparent">
-              <TableHead className="font-medium pb-3">Name</TableHead>
+              {/* <TableHead className="font-medium pb-3">Name</TableHead> */}
               <TableHead className="font-medium pb-3">Email</TableHead>
+              {/* <TableHead className="font-medium pb-3">Partner ID</TableHead> */}
               <TableHead className="font-medium pb-3">Reg.Date</TableHead>
               <TableHead className="font-medium pb-3">Status</TableHead>
               <TableHead className="font-medium pb-3">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredData.map((partner, index) => (
-              <TableRow key={index} className="border-b-black/30">
-                <TableCell className="p-3">{partner.fullName}</TableCell>
-                <TableCell className="p-3">{partner.email}</TableCell>
-                <TableCell className="p-3">
-                  {new Date(partner.regDate).toLocaleDateString()}
+            {filteredData.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="text-center p-8 text-gray-500"
+                >
+                  No partners found
                 </TableCell>
-                <TableCell className={`p-3 ${statusClass(partner.status)}`}>
-                  {partner.status}
-                </TableCell>
-                <TableCell className="p-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger className="border-0 focus:outline-none">
-                      <BsThreeDotsVertical className="text-2xl text-black cursor-pointer hover:text-black/80" />
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-full bg-white flex flex-col items-center justify-center gap-2 border-none p-3">
-                      <DropdownMenuItem
-                        onClick={() => handleAction("preview", index)}
-                        className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+              </TableRow>
+            ) : (
+              filteredData.map((partner, index) => (
+                <TableRow key={partner._id} className="border-b-black/30">
+                  {/* <TableCell className="p-3">{partner.fullName}</TableCell> */}
+                  <TableCell className="p-3">{partner.email}</TableCell>
+                  {/* <TableCell className="p-3">{partner.partnerId}</TableCell> */}
+                  <TableCell className="p-3">
+                    {new Date(partner.createdAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell
+                    className={`p-3 ${statusClass(
+                      partner.status || "pending"
+                    )}`}
+                  >
+                    {partner.status || "pending"}
+                  </TableCell>
+                  <TableCell className="p-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger className="border-0 focus:outline-none">
+                        <BsThreeDotsVertical className="text-2xl text-black cursor-pointer hover:text-black/80" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-full bg-white flex flex-col items-center justify-center gap-2 border-none p-3">
+                        <DropdownMenuItem
+                          onClick={() => handleAction("preview", index)}
+                          className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                         text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                         rounded-md flex items-center justify-center"
-                      >
-                        Preview
-                      </DropdownMenuItem>
-                      {partner.status === "approved" ? (
-                        <DropdownMenuItem
-                          onClick={() => handleAction("suspend", index)}
-                          className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                          text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                          rounded-md flex items-center justify-center"
                         >
-                          Suspend
+                          Preview
                         </DropdownMenuItem>
-                      ) : partner.status === "pending" ? (
-                        <>
-                          <DropdownMenuItem
-                            onClick={() => handleAction("approve", index)}
-                            className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                            rounded-md flex items-center justify-center"
-                          >
-                            Approve
-                          </DropdownMenuItem>
+                        {(partner.status || "pending") === "approved" ? (
                           <DropdownMenuItem
                             onClick={() => handleAction("suspend", index)}
                             className="bg-transparent text-sm font-semibold w-full border border-red-primary 
-                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
-                            rounded-md flex items-center justify-center"
+                          text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                          rounded-md flex items-center justify-center"
                           >
                             Suspend
                           </DropdownMenuItem>
-                        </>
-                      ) : (
-                        partner.status === "suspended" && (
-                          <DropdownMenuItem
-                            onClick={() => handleAction("approve", index)}
-                            className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                        ) : (partner.status || "pending") === "pending" ? (
+                          <>
+                            <DropdownMenuItem
+                              onClick={() => handleAction("approve", index)}
+                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
                             text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
                             rounded-md flex items-center justify-center"
-                          >
-                            Approve
-                          </DropdownMenuItem>
-                        )
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+                            >
+                              Approve
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleAction("suspend", index)}
+                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                            rounded-md flex items-center justify-center"
+                            >
+                              Suspend
+                            </DropdownMenuItem>
+                          </>
+                        ) : (
+                          (partner.status || "pending") === "suspended" && (
+                            <DropdownMenuItem
+                              onClick={() => handleAction("approve", index)}
+                              className="bg-transparent text-sm font-semibold w-full border border-red-primary 
+                            text-red-alt px-3 py-2 cursor-pointer hover:bg-red-primary/10 duration-300 ease-in-out 
+                            rounded-md flex items-center justify-center"
+                            >
+                              Approve
+                            </DropdownMenuItem>
+                          )
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
